@@ -7,7 +7,7 @@
     "build": "npm run build:ts",
     "build:ts": "tsc",
     "eslint": "eslint . --ext ts",
-    "test": "jest __tests__",
+    "test": "jest ${1}",
     "eslint:cache": "npm run eslint -- --cache",
     "lint": "npm run eslint",
     "lint:fix": "npm run eslint -- --fix",
