@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@rdfjs/types": "^1.0.1",
-    "@treecg/types": "0.0.4",
+    "@treecg/types": "0.0.5",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.11.1",
     "eslint": "^8.0.1",
