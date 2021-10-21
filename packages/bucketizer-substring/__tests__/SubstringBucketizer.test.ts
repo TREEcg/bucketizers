@@ -1,4 +1,5 @@
 import type * as RDF from '@rdfjs/types';
+import type { BucketizerOptions } from '@treecg/types';
 import { expect } from 'chai';
 import { DataFactory } from 'rdf-data-factory';
 import { SubstringBucketizer } from '../lib/SubstringBucketizer';
@@ -7,6 +8,7 @@ describe('ldes-substring-bucketizer', () => {
   let member: RDF.Quad[];
   const factory: RDF.DataFactory = new DataFactory();
   const bucketNode = factory.namedNode('https://w3id.org/ldes#bucket');
+  let bucketizerOptions: BucketizerOptions;
 
   beforeEach(async () => {
     member = [
@@ -16,6 +18,11 @@ describe('ldes-substring-bucketizer', () => {
         factory.namedNode('John Doe'),
       ),
     ];
+
+    bucketizerOptions = {
+      propertyPath: '(<http://www.w3.org/2000/01/rdf-schema#label>)',
+      pageSize: 1,
+    };
   });
 
   it('should be a function', async () => {
@@ -23,13 +30,15 @@ describe('ldes-substring-bucketizer', () => {
   });
 
   it('should be a constructor', async () => {
-    expect(await SubstringBucketizer.build('(<http://www.w3.org/2000/01/rdf-schema#label>)', 20))
+    bucketizerOptions.pageSize = 20;
+    expect(await SubstringBucketizer.build(bucketizerOptions))
       .to.be.instanceOf(SubstringBucketizer);
   });
 
   it('should add a bucket quad to the array of quads', async () => {
     const originalLength = member.length;
-    const bucketizer = await SubstringBucketizer.build('(<http://www.w3.org/2000/01/rdf-schema#label>)', 20);
+    bucketizerOptions.pageSize = 20;
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
 
     bucketizer.bucketize(member, 'http://example.org/id/123#456');
 
@@ -37,7 +46,8 @@ describe('ldes-substring-bucketizer', () => {
   });
 
   it('should throw an error when property path is not found', async () => {
-    const bucketizer = await SubstringBucketizer.build('(<http://www.w3.org/2000/01/rdf-schema#label>)', 20);
+    bucketizerOptions.pageSize = 20;
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
     const newMember = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),
@@ -50,7 +60,8 @@ describe('ldes-substring-bucketizer', () => {
   });
 
   it('should add LDES members to the current page, when page is not full yet', async () => {
-    const bucketizer = await SubstringBucketizer.build('(<http://www.w3.org/2000/01/rdf-schema#label>)', 20);
+    bucketizerOptions.pageSize = 20;
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
     const newMember = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#789'),
@@ -70,7 +81,7 @@ describe('ldes-substring-bucketizer', () => {
   });
 
   it('should add an LDES member to another page when current page is full', async () => {
-    const bucketizer = await SubstringBucketizer.build('(<http://www.w3.org/2000/01/rdf-schema#label>)', 1);
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
     let newMember = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#789'),
@@ -104,7 +115,7 @@ describe('ldes-substring-bucketizer', () => {
   });
 
   it('it should cope with strings that contain spaces', async () => {
-    const bucketizer = await SubstringBucketizer.build('(<http://www.w3.org/2000/01/rdf-schema#label>)', 1);
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
     let newMember = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#789'),
@@ -134,7 +145,7 @@ describe('ldes-substring-bucketizer', () => {
   });
 
   it('should add a member to the current page when whole string was iterated, even when page is full', async () => {
-    const bucketizer = await SubstringBucketizer.build('(<http://www.w3.org/2000/01/rdf-schema#label>)', 1);
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
     let newMember = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#789'),

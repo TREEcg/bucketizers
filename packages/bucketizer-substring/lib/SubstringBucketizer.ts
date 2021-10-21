@@ -1,4 +1,5 @@
 import type * as RDF from '@rdfjs/types';
+import type { BucketizerOptions } from '@treecg/types';
 import { Bucketizer } from '@treecg/types';
 
 const ROOT = 'root';
@@ -17,8 +18,8 @@ export class SubstringBucketizer extends Bucketizer {
     this.bucketCounterMap.set(ROOT, 0);
   }
 
-  public static build = async (propertyPath: string, pageSize: number): Promise<SubstringBucketizer> => {
-    const bucketizer = new SubstringBucketizer(propertyPath, pageSize);
+  public static build = async (bucketizerOptions: BucketizerOptions): Promise<SubstringBucketizer> => {
+    const bucketizer = new SubstringBucketizer(bucketizerOptions.propertyPath, bucketizerOptions.pageSize);
     await bucketizer.init();
     return bucketizer;
   };

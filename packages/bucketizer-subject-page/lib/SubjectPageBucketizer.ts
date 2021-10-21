@@ -1,4 +1,5 @@
 import type * as RDF from '@rdfjs/types';
+import type { BucketizerOptions } from '@treecg/types';
 import { Bucketizer } from '@treecg/types';
 
 export class SubjectPageBucketizer extends Bucketizer {
@@ -9,8 +10,8 @@ export class SubjectPageBucketizer extends Bucketizer {
     this.propertyPath = propertyPath;
   }
 
-  public static build = async (propertyPath: string): Promise<SubjectPageBucketizer> => {
-    const bucketizer = new SubjectPageBucketizer(propertyPath);
+  public static build = async (bucketizerOptions: BucketizerOptions): Promise<SubjectPageBucketizer> => {
+    const bucketizer = new SubjectPageBucketizer(bucketizerOptions.propertyPath);
     await bucketizer.init();
     return bucketizer;
   };

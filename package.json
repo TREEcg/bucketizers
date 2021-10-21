@@ -7,8 +7,8 @@
     "build": "npm run build:ts",
     "build:ts": "tsc",
     "eslint": "eslint . --ext ts",
-    "test": "mocha -r ts-node/register 'packages/**/__tests__/**/*.ts'",
-    "test:coverage": "nyc mocha -r ts-node/register 'packages/**/__tests__/**/*.ts'",
+    "test": "npm run build && mocha -r ts-node/register 'packages/**/__tests__/**/*.ts'",
+    "test:coverage": "npm run build && nyc mocha -r ts-node/register 'packages/**/__tests__/**/*.ts'",
     "eslint:cache": "npm run eslint -- --cache",
     "lint": "npm run eslint",
     "lint:fix": "npm run eslint -- --fix",
@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "@rdfjs/types": "^1.0.1",
-    "@treecg/types": "0.0.6",
     "@types/chai": "^4.2.22",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.11.1",
@@ -40,6 +39,7 @@
     "typescript": "^4.4.4"
   },
   "dependencies": {
+    "@treecg/types": "0.0.7",
     "husky": "^7.0.4"
   }
 }

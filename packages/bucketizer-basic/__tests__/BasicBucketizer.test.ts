@@ -12,11 +12,11 @@ describe('bucketizer-basic', () => {
   });
 
   it('should be a constructor', async () => {
-    expect(await BasicBucketizer.build(1)).to.be.instanceOf(BasicBucketizer);
+    expect(await BasicBucketizer.build({ pageSize: 1, propertyPath: '' })).to.be.instanceOf(BasicBucketizer);
   });
 
   it('should add members to the same page when it is not full', async () => {
-    const bucketizer = await BasicBucketizer.build(20);
+    const bucketizer = await BasicBucketizer.build({ pageSize: 20, propertyPath: '' });
     const member = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),
@@ -44,7 +44,7 @@ describe('bucketizer-basic', () => {
   });
 
   it('should add a member to a new page when current page is full', async () => {
-    const bucketizer = await BasicBucketizer.build(1);
+    const bucketizer = await BasicBucketizer.build({ pageSize: 1, propertyPath: '' });
     const member = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),

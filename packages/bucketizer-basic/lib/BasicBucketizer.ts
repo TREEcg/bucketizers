@@ -1,4 +1,5 @@
 import type * as RDF from '@rdfjs/types';
+import type { BucketizerOptions } from '@treecg/types';
 import { Bucketizer } from '@treecg/types';
 
 export class BasicBucketizer extends Bucketizer {
@@ -14,7 +15,8 @@ export class BasicBucketizer extends Bucketizer {
     this.memberCounter = 0;
   }
 
-  public static build = async (pageSize: number): Promise<BasicBucketizer> => new BasicBucketizer(pageSize);
+  public static build = async (bucketizerOptions: BucketizerOptions): Promise<BasicBucketizer> =>
+    new BasicBucketizer(bucketizerOptions.pageSize);
 
   public bucketize = (quads: RDF.Quad[], memberId: string): void => {
     if (this.memberCounter >= this.pageSize) {
