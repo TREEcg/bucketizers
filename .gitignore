@@ -2,3 +2,4 @@ node_modules
 coverage
 packages/**/*.js
 packages/**/*.d.ts
+.nyc_output

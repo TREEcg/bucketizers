@@ -35,7 +35,7 @@ export class SubstringBucketizer extends Bucketizer {
     quads.push(...bucketTriples);
   };
 
-  public createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
+  protected createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
     const buckets: string[] = [];
     propertyPathObjects.forEach(propertyPathObject => {
       const normalizedLiteral = this.normalize(propertyPathObject.value);
@@ -46,7 +46,7 @@ export class SubstringBucketizer extends Bucketizer {
       let bucketFound = false;
 
       for (const part of parts) {
-        for (const character of [...part]) {
+        for (const character of part) {
           if (this.hasRoom(currentBucket)) {
             this.updateCounter(currentBucket, buckets);
             buckets.push(currentBucket);
@@ -82,9 +82,9 @@ export class SubstringBucketizer extends Bucketizer {
 
         // It's possible that a bucket was not found yet for a substring, but that there are
         // no other parts anymore to iterate, so we still have to add that substring to the bucket
-        // It's possible to we exceed the page limit.
+        // It's possible that we exceed the page limit.
         // If there are other parts, add '+' to the substring
-        if (propertyPathObjects.length > 1) {
+        if (parts.length > 1) {
           substring += '+';
         } else {
           buckets.push(substring);
@@ -118,9 +118,7 @@ export class SubstringBucketizer extends Bucketizer {
     // will be placed in different buckets.
     // However, it is possible that for each language, the same bucket is selected
     // Then the counter must only be updated once, because the member is only added once
-    if (!buckets.includes(bucket)) {
-      const count = this.bucketCounterMap.get(bucket) || 0;
-      this.bucketCounterMap.set(bucket, count + 1);
-    }
+    const count = this.bucketCounterMap.get(bucket) || 0;
+    this.bucketCounterMap.set(bucket, count + 1);
   };
 }

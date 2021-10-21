@@ -8,7 +8,6 @@ module.exports = {
   plugins: [
     "eslint-plugin-tsdoc",
     "eslint-plugin-import",
-    "eslint-plugin-jest",
     "eslint-plugin-unused-imports",
   ],
   extends: [
@@ -36,6 +35,7 @@ module.exports = {
   },
   rules: {
     // Default
+    "unicorn/prefer-at": "off",
     "array-bracket-spacing": "off",
     "linebreak-style": "off",
     "class-methods-use-this": "off", // Conflicts with functions from interfaces that sometimes don't require `this`
@@ -180,10 +180,7 @@ module.exports = {
     },
     {
       // Specific rules for test files
-      files: ["**/test/**/*.ts"],
-      env: {
-        "jest/globals": true,
-      },
+      files: ["**/__tests__/**/*.ts"],
       globals: {
         spyOn: false,
         fail: false,

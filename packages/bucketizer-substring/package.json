@@ -24,21 +24,8 @@
   "bugs": {
     "url": "https://github.com/TREEcg/bucketizers/issues"
   },
-  "jest": {
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "../../tsconfig.json"
-      }
-    },
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "testRegex": "/__tests__/.*.test.ts$",
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
-    "collectCoverage": true
-  },
-  "devDependencies": {}
+  "devDependencies": {},
+  "dependencies": {
+    "@treecg/types": "0.0.6"
+  }
 }

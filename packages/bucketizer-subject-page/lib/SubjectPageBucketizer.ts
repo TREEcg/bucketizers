@@ -4,7 +4,7 @@ import { Bucketizer } from '@treecg/types';
 export class SubjectPageBucketizer extends Bucketizer {
   public propertyPath: string;
 
-  public constructor(propertyPath: string) {
+  private constructor(propertyPath: string) {
     super(propertyPath);
     this.propertyPath = propertyPath;
   }
@@ -28,11 +28,13 @@ export class SubjectPageBucketizer extends Bucketizer {
     quads.push(...bucketTriples);
   };
 
-  public createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
+  protected createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
     const buckets: string[] = [];
     propertyPathObjects.forEach(propertyPathObject => {
       const parts = propertyPathObject.value.split('/');
-      buckets.push(parts[parts.length - 1]);
+      if (parts[parts.length - 1] !== undefined) {
+        buckets.push(parts[parts.length - 1]);
+      }
     });
 
     return buckets;

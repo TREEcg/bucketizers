@@ -6,7 +6,7 @@ export class BasicBucketizer extends Bucketizer {
   public pageNumber: number;
   public memberCounter: number;
 
-  public constructor(pageSize: number) {
+  private constructor(pageSize: number) {
     super('');
 
     this.pageSize = pageSize;
@@ -31,7 +31,7 @@ export class BasicBucketizer extends Bucketizer {
     this.increaseMemberCounter();
   };
 
-  public createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
+  protected createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
     throw new Error(`[BasicBucketizer]: Method not implemented`);
   };
 
