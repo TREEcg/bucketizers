@@ -2,21 +2,22 @@ import type * as RDF from '@rdfjs/types';
 import type { BucketizerOptions } from '@treecg/types';
 import { Bucketizer } from '@treecg/types';
 
+export async function build(bucketizerOptions: BucketizerOptions): Promise<BasicBucketizer> {
+  return new BasicBucketizer(bucketizerOptions.pageSize);
+}
+
 export class BasicBucketizer extends Bucketizer {
   public pageSize: number;
   public pageNumber: number;
   public memberCounter: number;
 
-  private constructor(pageSize: number) {
+  public constructor(pageSize: number) {
     super('');
 
     this.pageSize = pageSize;
     this.pageNumber = 0;
     this.memberCounter = 0;
   }
-
-  public static build = async (bucketizerOptions: BucketizerOptions): Promise<BasicBucketizer> =>
-    new BasicBucketizer(bucketizerOptions.pageSize);
 
   public bucketize = (quads: RDF.Quad[], memberId: string): void => {
     if (this.memberCounter >= this.pageSize) {

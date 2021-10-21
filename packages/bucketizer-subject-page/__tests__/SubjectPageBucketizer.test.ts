@@ -2,7 +2,7 @@ import type * as RDF from '@rdfjs/types';
 import type { BucketizerOptions } from '@treecg/types';
 import { expect } from 'chai';
 import { DataFactory } from 'rdf-data-factory';
-import { SubjectPageBucketizer } from '../lib/SubjectPageBucketizer';
+import { build, SubjectPageBucketizer } from '../lib/SubjectPageBucketizer';
 
 describe('bucketizer-subject-page', () => {
   let member: RDF.Quad[];
@@ -27,12 +27,13 @@ describe('bucketizer-subject-page', () => {
   });
 
   it('should be a constructor', async () => {
-    expect(await SubjectPageBucketizer.build(bucketizerOptions))
+    const bucketizer = await build(bucketizerOptions);
+    expect(bucketizer)
       .to.be.instanceOf(SubjectPageBucketizer);
   });
 
   it('should throw an error when property path is not found', async () => {
-    const bucketizer = await SubjectPageBucketizer.build(bucketizerOptions);
+    const bucketizer = await build(bucketizerOptions);
     const newMember = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),
@@ -46,7 +47,7 @@ describe('bucketizer-subject-page', () => {
 
   it('should add a bucket quad to the array of quads', async () => {
     const originalLength = member.length;
-    const bucketizer = await SubjectPageBucketizer.build(bucketizerOptions);
+    const bucketizer = await build(bucketizerOptions);
     bucketizer.bucketize(member, 'http://example.org/id/123#456');
 
     expect(member.length).to.equal(originalLength + 1);

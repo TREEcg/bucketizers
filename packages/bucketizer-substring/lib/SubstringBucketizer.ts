@@ -4,6 +4,12 @@ import { Bucketizer } from '@treecg/types';
 
 const ROOT = 'root';
 
+export async function build(bucketizerOptions: BucketizerOptions): Promise<SubstringBucketizer> {
+  const bucketizer = new SubstringBucketizer(bucketizerOptions.propertyPath, bucketizerOptions.pageSize);
+  await bucketizer.init();
+  return bucketizer;
+}
+
 export class SubstringBucketizer extends Bucketizer {
   public propertyPath: string;
   public pageSize: number;
@@ -17,12 +23,6 @@ export class SubstringBucketizer extends Bucketizer {
     this.bucketCounterMap = new Map<string, number>();
     this.bucketCounterMap.set(ROOT, 0);
   }
-
-  public static build = async (bucketizerOptions: BucketizerOptions): Promise<SubstringBucketizer> => {
-    const bucketizer = new SubstringBucketizer(bucketizerOptions.propertyPath, bucketizerOptions.pageSize);
-    await bucketizer.init();
-    return bucketizer;
-  };
 
   public bucketize = (quads: RDF.Quad[], memberId: string): void => {
     const propertyPathObjects: RDF.Term[] = this.extractPropertyPathObject(quads, memberId);
