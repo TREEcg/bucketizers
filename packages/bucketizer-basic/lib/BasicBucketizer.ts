@@ -1,8 +1,12 @@
 import type * as RDF from '@rdfjs/types';
-import type { BucketizerOptions } from '@treecg/types';
-import { Bucketizer } from '@treecg/types';
+import type { BucketizerOptions, RelationParameters } from '@treecg/types';
+import { Bucketizer, RelationType } from '@treecg/types';
 
 export async function build(bucketizerOptions: BucketizerOptions): Promise<BasicBucketizer> {
+  if (!bucketizerOptions.pageSize) {
+    throw new Error(`[BasicBucketizer]: Please provide a page size.`);
+  }
+
   return new BasicBucketizer(bucketizerOptions.pageSize);
 }
 
@@ -25,7 +29,7 @@ export class BasicBucketizer extends Bucketizer {
       this.increasePageNumber();
       this.resetMemberCounter();
 
-      this.addHypermediaControls(`${currentPage}`, [`${this.pageNumber}`]);
+      this.addHypermediaControls(`${currentPage}`, [this.createRelationParameters(this.pageNumber)]);
     }
 
     const bucketTriple = this.createBucketTriple(`${this.pageNumber}`, memberId);
@@ -45,4 +49,11 @@ export class BasicBucketizer extends Bucketizer {
   private readonly resetMemberCounter = (): void => {
     this.memberCounter = 0;
   };
+
+  private readonly createRelationParameters = (
+    targetNode: number,
+  ): RelationParameters => ({
+    nodeId: targetNode.toString(),
+    type: RelationType.Relation,
+  });
 }

@@ -1,10 +1,14 @@
 import type * as RDF from '@rdfjs/types';
-import type { BucketizerOptions } from '@treecg/types';
-import { Bucketizer } from '@treecg/types';
+import type { BucketizerOptions, RelationParameters } from '@treecg/types';
+import { Bucketizer, RelationType } from '@treecg/types';
 
 const ROOT = 'root';
 
 export async function build(bucketizerOptions: BucketizerOptions): Promise<SubstringBucketizer> {
+  if (!bucketizerOptions.propertyPath || !bucketizerOptions.pageSize) {
+    throw new Error(`[SubstringBucketizer]: Please provide both a valid property path and page size.`);
+  }
+
   const bucketizer = new SubstringBucketizer(bucketizerOptions.propertyPath, bucketizerOptions.pageSize);
   await bucketizer.init();
   return bucketizer;
@@ -49,7 +53,7 @@ export class SubstringBucketizer extends Bucketizer {
       for (const part of parts) {
         for (const character of part) {
           if (this.hasRoom(currentBucket)) {
-            this.updateCounter(currentBucket, buckets);
+            this.updateCounter(currentBucket);
             buckets.push(currentBucket);
             bucketFound = true;
 
@@ -58,15 +62,18 @@ export class SubstringBucketizer extends Bucketizer {
             substring += character;
             const hypermediaControls = this.getHypermediaControls(currentBucket);
 
-            if (hypermediaControls === undefined || !hypermediaControls.includes(substring)) {
+            if (hypermediaControls === undefined ||
+              // eslint-disable-next-line @typescript-eslint/no-loop-func
+              !hypermediaControls.some(relationParametersObject => relationParametersObject.nodeId === substring)) {
+              const relationParameters = this.createRelationParameters(substring, substring.split('+'));
               const updatedControls = hypermediaControls === undefined ?
-                [substring] :
-                [...hypermediaControls, substring];
+                [relationParameters] :
+                [...hypermediaControls, relationParameters];
 
               this.addHypermediaControls(currentBucket, updatedControls);
               currentBucket = substring;
 
-              this.updateCounter(currentBucket, buckets);
+              this.updateCounter(currentBucket);
               buckets.push(currentBucket);
               bucketFound = true;
 
@@ -114,7 +121,7 @@ export class SubstringBucketizer extends Bucketizer {
   private readonly hasRoom = (bucket: string): boolean =>
     !this.bucketCounterMap.has(bucket) || this.bucketCounterMap.get(bucket)! < this.pageSize;
 
-  private readonly updateCounter = (bucket: string, buckets: string[]): void => {
+  private readonly updateCounter = (bucket: string): void => {
     // A member who has multiple objects for the property path (e.g. language tags)
     // will be placed in different buckets.
     // However, it is possible that for each language, the same bucket is selected
@@ -122,4 +129,14 @@ export class SubstringBucketizer extends Bucketizer {
     const count = this.bucketCounterMap.get(bucket) || 0;
     this.bucketCounterMap.set(bucket, count + 1);
   };
+
+  private readonly createRelationParameters = (
+    targetNode: string,
+    values: string[],
+  ): RelationParameters => ({
+    nodeId: targetNode,
+    type: RelationType.Substring,
+    value: values.map(value =>
+      this.factory.literal(value, this.factory.namedNode('http://www.w3.org/2001/XMLSchema#string'))),
+  });
 }

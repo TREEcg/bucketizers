@@ -1,5 +1,6 @@
 import type * as RDF from '@rdfjs/types';
-import type { BucketizerOptions } from '@treecg/types';
+import type { BucketizerOptions, RelationParameters } from '@treecg/types';
+import { RelationType } from '@treecg/types';
 import { expect } from 'chai';
 import { DataFactory } from 'rdf-data-factory';
 import { build, SubstringBucketizer } from '../lib/SubstringBucketizer';
@@ -106,7 +107,12 @@ describe('ldes-substring-bucketizer', () => {
     bucketizer.bucketize(newMember, 'http://example.org/id/123#246');
 
     const hypermediaControls = bucketizer.getHypermediaControls('root');
-    expect(hypermediaControls).to.an('array').that.includes('j');
+    const relationParameters: RelationParameters = {
+      nodeId: 'j',
+      type: RelationType.Substring,
+      value: [factory.literal('j', factory.namedNode('http://www.w3.org/2001/XMLSchema#string'))],
+    };
+    expect(hypermediaControls).to.an('array').that.deep.includes.members([relationParameters]);
 
     const buckets = ['root', 'j', 'ja'];
     [...member, ...newMember].forEach(quad => {

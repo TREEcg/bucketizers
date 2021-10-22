@@ -27,6 +27,6 @@
     "url": "https://github.com/TREEcg/bucketizers/issues"
   },
   "dependencies": {
-    "@treecg/types": "^0.0.7"
+    "@treecg/types": "0.0.10"
   }
 }

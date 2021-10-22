@@ -3,6 +3,10 @@ import type { BucketizerOptions } from '@treecg/types';
 import { Bucketizer } from '@treecg/types';
 
 export async function build(bucketizerOptions: BucketizerOptions): Promise<SubjectPageBucketizer> {
+  if (!bucketizerOptions.propertyPath) {
+    throw new Error(`[SubjectPageBucketizer]: Please provide a valid property path.`);
+  }
+
   const bucketizer = new SubjectPageBucketizer(bucketizerOptions.propertyPath);
   await bucketizer.init();
   return bucketizer;
