@@ -1,6 +1,6 @@
 {
   "name": "@treecg/basic-bucketizer",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Applies a basic, linear fragmentation to LDES members",
   "author": "Dwight Van Lancker <dwight.vanlancker@hotmail.com>",
   "homepage": "https://github.com/TREEcg/bucketizers#readme",
