@@ -39,7 +39,7 @@
     "typescript": "^4.4.4"
   },
   "dependencies": {
-    "@treecg/types": "0.0.10",
+    "@treecg/types": "0.0.12",
     "husky": "^7.0.4"
   }
 }
