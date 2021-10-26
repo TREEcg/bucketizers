@@ -4,22 +4,12 @@ import { Bucketizer, RelationType } from '@treecg/types';
 
 const ROOT = 'root';
 
-export async function build(bucketizerOptions: BucketizerOptions): Promise<SubstringBucketizer> {
-  if (!bucketizerOptions.propertyPath || !bucketizerOptions.pageSize) {
-    throw new Error(`[SubstringBucketizer]: Please provide both a valid property path and page size.`);
-  }
-
-  const bucketizer = new SubstringBucketizer(bucketizerOptions.propertyPath, bucketizerOptions.pageSize);
-  await bucketizer.init();
-  return bucketizer;
-}
-
 export class SubstringBucketizer extends Bucketizer {
   public propertyPath: string;
   public pageSize: number;
   public bucketCounterMap: Map<string, number>;
 
-  public constructor(propertyPath: string, pageSize: number) {
+  private constructor(propertyPath: string, pageSize: number) {
     super(propertyPath);
     this.propertyPath = propertyPath;
     this.pageSize = pageSize;
@@ -27,6 +17,16 @@ export class SubstringBucketizer extends Bucketizer {
     this.bucketCounterMap = new Map<string, number>();
     this.bucketCounterMap.set(ROOT, 0);
   }
+
+  public static build = async (bucketizerOptions: BucketizerOptions): Promise<SubstringBucketizer> => {
+    if (!bucketizerOptions.propertyPath || !bucketizerOptions.pageSize) {
+      throw new Error(`[SubstringBucketizer]: Please provide both a valid property path and page size.`);
+    }
+
+    const bucketizer = new SubstringBucketizer(bucketizerOptions.propertyPath, bucketizerOptions.pageSize);
+    await bucketizer.init();
+    return bucketizer;
+  };
 
   public bucketize = (quads: RDF.Quad[], memberId: string): void => {
     const propertyPathObjects: RDF.Term[] = this.extractPropertyPathObject(quads, memberId);
