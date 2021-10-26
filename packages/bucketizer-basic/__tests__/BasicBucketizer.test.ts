@@ -1,7 +1,7 @@
 import type * as RDF from '@rdfjs/types';
 import { expect } from 'chai';
 import { DataFactory } from 'rdf-data-factory';
-import { BasicBucketizer, build } from '../lib/BasicBucketizer';
+import { BasicBucketizer } from '../lib/BasicBucketizer';
 
 describe('bucketizer-basic', () => {
   const factory: RDF.DataFactory = new DataFactory();
@@ -12,12 +12,12 @@ describe('bucketizer-basic', () => {
   });
 
   it('should be a constructor', async () => {
-    const bucketizer = await build({ pageSize: 1, propertyPath: '' });
+    const bucketizer = await BasicBucketizer.build({ pageSize: 1, propertyPath: '' });
     expect(bucketizer).to.be.instanceOf(BasicBucketizer);
   });
 
   it('should add members to the same page when it is not full', async () => {
-    const bucketizer = await build({ pageSize: 20, propertyPath: '' });
+    const bucketizer = await BasicBucketizer.build({ pageSize: 20, propertyPath: '' });
     const member = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),
@@ -45,7 +45,7 @@ describe('bucketizer-basic', () => {
   });
 
   it('should add a member to a new page when current page is full', async () => {
-    const bucketizer = await build({ pageSize: 1, propertyPath: '' });
+    const bucketizer = await BasicBucketizer.build({ pageSize: 1, propertyPath: '' });
     const member = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),

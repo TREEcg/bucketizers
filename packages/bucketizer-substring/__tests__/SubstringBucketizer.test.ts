@@ -3,7 +3,7 @@ import type { BucketizerOptions, RelationParameters } from '@treecg/types';
 import { RelationType } from '@treecg/types';
 import { expect } from 'chai';
 import { DataFactory } from 'rdf-data-factory';
-import { build, SubstringBucketizer } from '../lib/SubstringBucketizer';
+import { SubstringBucketizer } from '../lib/SubstringBucketizer';
 
 describe('ldes-substring-bucketizer', () => {
   let member: RDF.Quad[];
@@ -32,7 +32,7 @@ describe('ldes-substring-bucketizer', () => {
 
   it('should be a constructor', async () => {
     bucketizerOptions.pageSize = 20;
-    const bucketizer = await build(bucketizerOptions);
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
 
     expect(bucketizer)
       .to.be.instanceOf(SubstringBucketizer);
@@ -41,7 +41,7 @@ describe('ldes-substring-bucketizer', () => {
   it('should add a bucket quad to the array of quads', async () => {
     const originalLength = member.length;
     bucketizerOptions.pageSize = 20;
-    const bucketizer = await build(bucketizerOptions);
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
 
     bucketizer.bucketize(member, 'http://example.org/id/123#456');
 
@@ -50,7 +50,7 @@ describe('ldes-substring-bucketizer', () => {
 
   it('should throw an error when property path is not found', async () => {
     bucketizerOptions.pageSize = 20;
-    const bucketizer = await build(bucketizerOptions);
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
     const newMember = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),
@@ -64,7 +64,7 @@ describe('ldes-substring-bucketizer', () => {
 
   it('should add LDES members to the current page, when page is not full yet', async () => {
     bucketizerOptions.pageSize = 20;
-    const bucketizer = await build(bucketizerOptions);
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
     const newMember = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#789'),
@@ -84,7 +84,7 @@ describe('ldes-substring-bucketizer', () => {
   });
 
   it('should add an LDES member to another page when current page is full', async () => {
-    const bucketizer = await build(bucketizerOptions);
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
     let newMember = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#789'),
@@ -123,7 +123,7 @@ describe('ldes-substring-bucketizer', () => {
   });
 
   it('it should cope with strings that contain spaces', async () => {
-    const bucketizer = await build(bucketizerOptions);
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
     let newMember = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#789'),
@@ -153,7 +153,7 @@ describe('ldes-substring-bucketizer', () => {
   });
 
   it('should add a member to the current page when whole string was iterated, even when page is full', async () => {
-    const bucketizer = await build(bucketizerOptions);
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
     let newMember = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#789'),
