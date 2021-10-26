@@ -1,6 +1,6 @@
 {
   "name": "@treecg/bucketizers",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Package that contains all @treecg bucketizers",
   "author": "Dwight Van Lancker <dwight.vanlancker@hotmail.com>",
   "homepage": "https://github.com/TREEcg/bucketizers#readme",
@@ -18,8 +18,8 @@
     "url": "https://github.com/TREEcg/bucketizers/issues"
   },
   "dependencies": {
-    "@treecg/basic-bucketizer": "^1.2.0",
-    "@treecg/subject-page-bucketizer": "^1.2.0",
-    "@treecg/substring-bucketizer": "^1.2.0"
+    "@treecg/basic-bucketizer": "^1.3.0",
+    "@treecg/subject-page-bucketizer": "^1.3.0",
+    "@treecg/substring-bucketizer": "^1.3.0"
   }
 }
