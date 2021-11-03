@@ -187,4 +187,44 @@ describe('ldes-substring-bucketizer', () => {
       }
     });
   });
+
+  it('should normalize properly', async () => {
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
+    const newMember = [
+      factory.quad(
+        factory.namedNode('http://example.org/id/123#789'),
+        factory.namedNode('http://www.w3.org/2000/01/rdf-schema#label'),
+        factory.namedNode('\u0303\u0237'),
+      ),
+    ];
+
+    bucketizer.bucketize(member, 'http://example.org/id/123#456');
+    bucketizer.bucketize(newMember, 'http://example.org/id/123#789');
+
+    newMember.forEach(quad => {
+      if (quad.predicate.equals(bucketNode)) {
+        expect(quad.object.value).to.equal('\u0237');
+      }
+    });
+  });
+
+  it('should normailze properly 2', async () => {
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
+    const newMember = [
+      factory.quad(
+        factory.namedNode('http://example.org/id/123#789'),
+        factory.namedNode('http://www.w3.org/2000/01/rdf-schema#label'),
+        factory.namedNode('\u00F1'), // See: ñ == '\u00F1' == '\u006E\u0303' and '\u0303' == ~
+      ),
+    ];
+
+    bucketizer.bucketize(member, 'http://example.org/id/123#456');
+    bucketizer.bucketize(newMember, 'http://example.org/id/123#789');
+
+    newMember.forEach(quad => {
+      if (quad.predicate.equals(bucketNode)) {
+        expect(quad.object.value).to.equal('\u006E');
+      }
+    });
+  });
 });
