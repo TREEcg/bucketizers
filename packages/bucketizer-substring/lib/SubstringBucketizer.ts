@@ -113,7 +113,8 @@ export class SubstringBucketizer extends Bucketizer {
    */
   private readonly normalize = (literal: string): string =>
     literal.trim().normalize('NFKD')
-      .replace(/\p{Diacritic}/gu, '')
+    // .replace(/\p{Diacritic}/gu, '')
+      .replace(/[\u0300-\u036F]/gu, '')
       .replace(/[,']/gu, '')
       .replace(/[-]/gu, ' ')
       .toLowerCase();
