@@ -9,8 +9,8 @@ export class SubstringBucketizer extends Bucketizer {
   public pageSize: number;
   public bucketCounterMap: Map<string, number>;
 
-  private constructor(propertyPath: string, pageSize: number) {
-    super(propertyPath);
+  private constructor(propertyPathQuads: any[], propertyPath: string, pageSize: number) {
+    super(propertyPathQuads);
     this.propertyPath = propertyPath;
     this.pageSize = pageSize;
 
@@ -18,15 +18,25 @@ export class SubstringBucketizer extends Bucketizer {
     this.bucketCounterMap.set(ROOT, 0);
   }
 
-  public static build = async (bucketizerOptions: BucketizerOptions): Promise<SubstringBucketizer> => {
-    if (!bucketizerOptions.propertyPath || !bucketizerOptions.pageSize) {
-      throw new Error(`[SubstringBucketizer]: Please provide both a valid property path and page size.`);
+  public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<SubstringBucketizer> {
+    let propertyPathQuads: any[] = [];
+    let pageSize: number;
+
+    if (state) {
+      propertyPathQuads = state.propertyPathQuads;
+      pageSize = state.pageSize;
+    } else {
+      if (!bucketizerOptions.propertyPath || !bucketizerOptions.pageSize) {
+        throw new Error(`[SubstringBucketizer]: Please provide both a valid property path and page size.`);
+      }
+
+      propertyPathQuads = await SubstringBucketizer.parsePropertyPath(bucketizerOptions.propertyPath);
+      pageSize = bucketizerOptions.pageSize;
     }
 
-    const bucketizer = new SubstringBucketizer(bucketizerOptions.propertyPath, bucketizerOptions.pageSize);
-    await bucketizer.init();
+    const bucketizer = new SubstringBucketizer(propertyPathQuads, bucketizerOptions.propertyPath!, pageSize);
     return bucketizer;
-  };
+  }
 
   public bucketize = (quads: RDF.Quad[], memberId: string): void => {
     const propertyPathObjects: RDF.Term[] = this.extractPropertyPathObject(quads, memberId);
