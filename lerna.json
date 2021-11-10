@@ -7,7 +7,7 @@
       "ignoreChanges": [
         "*.md"
       ],
-      "message": "Bump to release version %s",
+      "message": "Bump to new release version",
       "allowBranch": "main",
       "npmClient": "npm"
     }
