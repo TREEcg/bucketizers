@@ -9,8 +9,11 @@ export class SubstringBucketizer extends Bucketizer {
   public pageSize: number;
   public bucketCounterMap: Map<string, number>;
 
-  private constructor(propertyPathQuads: any[], propertyPath: string, pageSize: number) {
-    super(propertyPathQuads);
+  private constructor(
+    propertyPath: string,
+    pageSize: number,
+  ) {
+    super();
     this.propertyPath = propertyPath;
     this.pageSize = pageSize;
 
@@ -19,22 +22,18 @@ export class SubstringBucketizer extends Bucketizer {
   }
 
   public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<SubstringBucketizer> {
-    let propertyPathQuads: any[] = [];
-    let pageSize: number;
-
-    if (state) {
-      propertyPathQuads = state.propertyPathQuads;
-      pageSize = state.pageSize;
-    } else {
-      if (!bucketizerOptions.propertyPath || !bucketizerOptions.pageSize) {
-        throw new Error(`[SubstringBucketizer]: Please provide both a valid property path and page size.`);
-      }
-
-      propertyPathQuads = await SubstringBucketizer.parsePropertyPath(bucketizerOptions.propertyPath);
-      pageSize = bucketizerOptions.pageSize;
+    if (!bucketizerOptions.propertyPath || !bucketizerOptions.pageSize) {
+      throw new Error(`[SubstringBucketizer]: Please provide both a valid property path and page size.`);
     }
 
-    const bucketizer = new SubstringBucketizer(propertyPathQuads, bucketizerOptions.propertyPath!, pageSize);
+    const bucketizer = new SubstringBucketizer(bucketizerOptions.propertyPath, bucketizerOptions.pageSize);
+
+    if (state) {
+      bucketizer.importState(state);
+    } else {
+      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath);
+    }
+
     return bucketizer;
   }
 
@@ -113,6 +112,18 @@ export class SubstringBucketizer extends Bucketizer {
 
     return [...new Set(buckets)];
   };
+
+  public exportState(): any {
+    const state = super.exportState();
+    state.bucketCounter = Array.from(this.bucketCounterMap.entries());
+
+    return state;
+  }
+
+  public importState(state: any): void {
+    super.importState(state);
+    this.bucketCounterMap = new Map(state.bucketCounter);
+  }
 
   /**
    * Normalizes a string by removing diacritics and comma's,

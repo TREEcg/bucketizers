@@ -5,25 +5,24 @@ import { Bucketizer } from '@treecg/types';
 export class SubjectPageBucketizer extends Bucketizer {
   private readonly propertyPath: string;
 
-  private constructor(propertyPathQuads: any[], propertyPath: string) {
-    super(propertyPathQuads);
+  private constructor(propertyPath: string) {
+    super();
     this.propertyPath = propertyPath;
   }
 
   public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<SubjectPageBucketizer> {
-    let propertyPathQuads: any[] = [];
-
-    if (state) {
-      propertyPathQuads = state.propertyPathQuads;
-    } else {
-      if (!bucketizerOptions.propertyPath) {
-        throw new Error(`[SubjectPageBucketizer]: Please provide a valid property path.`);
-      }
-
-      propertyPathQuads = await SubjectPageBucketizer.parsePropertyPath(bucketizerOptions.propertyPath);
+    if (!bucketizerOptions.propertyPath) {
+      throw new Error(`[SubjectPageBucketizer]: Please provide a valid property path.`);
     }
 
-    const bucketizer = new SubjectPageBucketizer(propertyPathQuads, bucketizerOptions.propertyPath!);
+    const bucketizer = new SubjectPageBucketizer(bucketizerOptions.propertyPath);
+
+    if (state) {
+      bucketizer.importState(state);
+    } else {
+      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath);
+    }
+
     return bucketizer;
   }
 

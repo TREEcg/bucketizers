@@ -1,9 +1,13 @@
 import type * as RDF from '@rdfjs/types';
 import type { BucketizerOptions, RelationParameters } from '@treecg/types';
 import { RelationType } from '@treecg/types';
-import { expect } from 'chai';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import { DataFactory } from 'rdf-data-factory';
 import { SubstringBucketizer } from '../lib/SubstringBucketizer';
+
+chai.use(chaiAsPromised);
+const expect = chai.expect;
 
 describe('ldes-substring-bucketizer', () => {
   let member: RDF.Quad[];
@@ -186,5 +190,32 @@ describe('ldes-substring-bucketizer', () => {
         expect(quad.object.value).to.equal('j');
       }
     });
+  });
+
+  it('should throw an error when "propertyPath" and/or "pageSize" option is not provided', async () => {
+    await expect(SubstringBucketizer.build({})).to.be.rejectedWith(Error);
+  });
+
+  it('should be able to import a previous state', async () => {
+    const state = {
+      hypermediaControls: [],
+      propertyPathQuads: [],
+      bucketCounter: [],
+    };
+
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions, state);
+
+    expect(bucketizer.getBucketHypermediaControlsMap()).to.eql(new Map(state.hypermediaControls));
+    expect(bucketizer.getPropertyPathQuads()).to.eql(state.propertyPathQuads);
+    expect(bucketizer.bucketCounterMap).to.eql(new Map(state.bucketCounter));
+  });
+
+  it('should be able to export its current state', async () => {
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
+    const currentState = bucketizer.exportState();
+
+    expect(currentState).to.haveOwnProperty('hypermediaControls');
+    expect(currentState).to.haveOwnProperty('bucketCounter');
+    expect(currentState).to.haveOwnProperty('propertyPathQuads');
   });
 });
