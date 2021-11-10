@@ -3,22 +3,28 @@ import type { BucketizerOptions } from '@treecg/types';
 import { Bucketizer } from '@treecg/types';
 
 export class SubjectPageBucketizer extends Bucketizer {
-  public propertyPath: string;
+  private readonly propertyPath: string;
 
   private constructor(propertyPath: string) {
-    super(propertyPath);
+    super();
     this.propertyPath = propertyPath;
   }
 
-  public static build = async (bucketizerOptions: BucketizerOptions): Promise<SubjectPageBucketizer> => {
+  public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<SubjectPageBucketizer> {
     if (!bucketizerOptions.propertyPath) {
       throw new Error(`[SubjectPageBucketizer]: Please provide a valid property path.`);
     }
 
     const bucketizer = new SubjectPageBucketizer(bucketizerOptions.propertyPath);
-    await bucketizer.init();
+
+    if (state) {
+      bucketizer.importState(state);
+    } else {
+      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath);
+    }
+
     return bucketizer;
-  };
+  }
 
   public bucketize = (quads: RDF.Quad[], memberId: string): void => {
     const propertyPathObjects: RDF.Term[] = this.extractPropertyPathObject(quads, memberId);

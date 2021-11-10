@@ -1,7 +1,11 @@
 import type * as RDF from '@rdfjs/types';
-import { expect } from 'chai';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import { DataFactory } from 'rdf-data-factory';
 import { BasicBucketizer } from '../lib/BasicBucketizer';
+
+chai.use(chaiAsPromised);
+const expect = chai.expect;
 
 describe('bucketizer-basic', () => {
   const factory: RDF.DataFactory = new DataFactory();
@@ -75,5 +79,39 @@ describe('bucketizer-basic', () => {
         expect(quad.object.value).to.equal('1');
       }
     });
+  });
+
+  it('should be able to exports its current state', async () => {
+    const bucketizer = await BasicBucketizer.build({ pageSize: 1, propertyPath: '' });
+    const member = [
+      factory.quad(
+        factory.namedNode('http://example.org/id/123#456'),
+        factory.namedNode('http://purl.org/dc/terms/isVersionOf'),
+        factory.namedNode('http://example.org/id/123'),
+      ),
+    ];
+
+    bucketizer.bucketize(member, 'http://example.org/id/123#456');
+    const state = bucketizer.exportState();
+
+    expect(state).to.eql({ hypermediaControls: [], propertyPathQuads: [], pageNumber: 0, memberCounter: 1 });
+  });
+
+  it('should import a previous state', async () => {
+    const state = {
+      hypermediaControls: [],
+      propertyPathQuads: [],
+      pageNumber: 5,
+      memberCounter: 5,
+    };
+
+    const bucketizer = await BasicBucketizer.build({ pageSize: 10, propertyPath: '' }, state);
+
+    expect(bucketizer.pageNumber).to.equal(state.pageNumber);
+    expect(bucketizer.memberCounter).to.equal(state.memberCounter);
+  });
+
+  it('should throw an error when "pageSize" option is not provided', async () => {
+    await expect(BasicBucketizer.build({})).to.be.rejectedWith(Error);
   });
 });

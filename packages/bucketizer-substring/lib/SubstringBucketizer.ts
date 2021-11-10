@@ -9,8 +9,11 @@ export class SubstringBucketizer extends Bucketizer {
   public pageSize: number;
   public bucketCounterMap: Map<string, number>;
 
-  private constructor(propertyPath: string, pageSize: number) {
-    super(propertyPath);
+  private constructor(
+    propertyPath: string,
+    pageSize: number,
+  ) {
+    super();
     this.propertyPath = propertyPath;
     this.pageSize = pageSize;
 
@@ -18,15 +21,21 @@ export class SubstringBucketizer extends Bucketizer {
     this.bucketCounterMap.set(ROOT, 0);
   }
 
-  public static build = async (bucketizerOptions: BucketizerOptions): Promise<SubstringBucketizer> => {
+  public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<SubstringBucketizer> {
     if (!bucketizerOptions.propertyPath || !bucketizerOptions.pageSize) {
       throw new Error(`[SubstringBucketizer]: Please provide both a valid property path and page size.`);
     }
 
     const bucketizer = new SubstringBucketizer(bucketizerOptions.propertyPath, bucketizerOptions.pageSize);
-    await bucketizer.init();
+
+    if (state) {
+      bucketizer.importState(state);
+    } else {
+      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath);
+    }
+
     return bucketizer;
-  };
+  }
 
   public bucketize = (quads: RDF.Quad[], memberId: string): void => {
     const propertyPathObjects: RDF.Term[] = this.extractPropertyPathObject(quads, memberId);
@@ -103,6 +112,18 @@ export class SubstringBucketizer extends Bucketizer {
 
     return [...new Set(buckets)];
   };
+
+  public exportState(): any {
+    const state = super.exportState();
+    state.bucketCounter = Array.from(this.bucketCounterMap.entries());
+
+    return state;
+  }
+
+  public importState(state: any): void {
+    super.importState(state);
+    this.bucketCounterMap = new Map(state.bucketCounter);
+  }
 
   /**
    * Normalizes a string by removing diacritics and comma's,
