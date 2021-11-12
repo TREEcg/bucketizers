@@ -44,7 +44,14 @@ export class SubjectPageBucketizer extends Bucketizer {
     propertyPathObjects.forEach(propertyPathObject => {
       const parts = propertyPathObject.value.split('/');
       if (parts[parts.length - 1] !== undefined) {
-        buckets.push(parts[parts.length - 1]);
+        const hypermediaControlsMap = this.getBucketHypermediaControlsMap();
+        const id = parts[parts.length - 1];
+
+        if (!hypermediaControlsMap.has(id)) {
+          hypermediaControlsMap.set(id, []);
+        }
+
+        buckets.push(id);
       }
     });
 
