@@ -1,0 +1,37 @@
+{
+  "name": "@treecg/geospatial-bucketizer",
+  "version": "1.0.0",
+  "description": "Applies a geospatial fragmentation to LDES members",
+  "author": "Dwight Van Lancker <dwight.vanlancker@hotmail.com>",
+  "homepage": "https://github.com/TREEcg/bucketizers#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "lib/**/*.d.ts",
+    "lib/**/*.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TREEcg/bucketizers.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TREEcg/bucketizers/issues"
+  },
+  "dependencies": {
+    "@treecg/types": "^0.0.16",
+    "@turf/bbox-polygon": "^6.5.0",
+    "@turf/turf": "^6.5.0",
+    "geojson-dissolve": "^3.1.0",
+    "slippy-bbox": "^1.0.0",
+    "wkt": "^0.1.1"
+  }
+}
