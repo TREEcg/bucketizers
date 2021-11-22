@@ -162,15 +162,14 @@ describe('geospatial-bucketizer', () => {
     expect(columnRelationParameters.value![0].value).to.equal(updatedBoundingBox);
   });
 
-  it('should flatten the arrays', async () => {
+  it('should be able to handle WKT literals with their coordinate system present in the string', async () => {
     const literal = factory.literal(
       // eslint-disable-next-line max-len
-      'MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)), ((20 35, 45 20, 30 5, 10 10, 10 30, 20 35), (30 20, 20 25, 20 15, 30 20)))',
+      '<http://www.opengis.net/def/crs/OGC/1.3/CRS84> Polygon(180 -42.5802,179.87257 -42.5802,179.87257 -42.86535,180 -42.86535,180 -42.5802)',
       factory.namedNode('http://www.opengis.net/ont/geosparql#wktLiteral'),
     );
 
-    const slippyMaps = new SlippyMaps(zoomLevel);
-
-    slippyMaps.calculateTiles(literal);
+    const slippyMaps = new SlippyMaps(4);
+    expect(() => slippyMaps.calculateTiles(literal)).to.not.throw(Error);
   });
 });

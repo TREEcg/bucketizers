@@ -64,6 +64,9 @@ export class SlippyMaps {
   }
 
   private wktToGeoJson(geoString: string): any {
+    if (geoString.startsWith('<')) {
+      geoString = geoString.slice(geoString.indexOf('>') + 1).trim();
+    }
     return parse(geoString);
   }
 
