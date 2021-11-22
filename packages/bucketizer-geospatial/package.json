@@ -1,6 +1,6 @@
 {
   "name": "@treecg/geospatial-bucketizer",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "Applies a geospatial fragmentation to LDES members",
   "author": "Dwight Van Lancker <dwight.vanlancker@hotmail.com>",
   "homepage": "https://github.com/TREEcg/bucketizers#readme",

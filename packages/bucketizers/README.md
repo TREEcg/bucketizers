@@ -11,7 +11,10 @@ General repository that contains all @treecg bucketizers as dependency and expor
 ## Usage
 
 ```
-import { BasicBucketizer, SubstringBucketizer, SubjectPageBucketizer} from '@treecg/bucketizers'
+import { BasicBucketizer } from '@treecg/bucketizers'
+import { SubstringBucketizer} from '@treecg/bucketizers'
+import { SubjectPageBucketizer } from '@treecg/bucketizers'
+import { GeospatialBucketizer } from '@treecg/bucketizers'
 
 ...
 ```

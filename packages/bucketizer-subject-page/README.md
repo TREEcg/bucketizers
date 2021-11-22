@@ -32,16 +32,16 @@ After passing the subject page bucketizer, the member will have an extra triple:
 
 A bucketizer should always be used in combination with the LDES client. More information on how to setup an LDES client can be found [here](https://github.com/TREEcg/event-stream-client/tree/main/packages/actor-init-ldes-client). It is important to set the option in the LDES client to receive the LDES member as an array of quads: `representation: 'quads'`.
 
-The bucketizer expects a property path as input and should have the following structure `(<predicate1> <predicate2> ...)`
+The bucketizer expects a valid property path
 
 ```
-import { SubjectPageBucketizer } from '@treecg/ldes-subject-page-bucketizer'
+import { SubjectPageBucketizer } from '@treecg/subject-page-bucketizer'
 
 const run = async (): Promise<void> => {
   const options = {...};
   const url = ...;
 
-  const bucketizer = await SubjectPageBucketizer.build('(<http://purl.org/dc/terms/isVersionOf>)');
+  const bucketizer = await SubjectPageBucketizer.build({ propertyPath: '<http://purl.org/dc/terms/isVersionOf>'});
 
   const ldes = LDESClient.createReadStream(url, options);
   ldes.on('data', (member) => {

@@ -18,14 +18,16 @@ We assume the following LDES member on which a substring fragmentation with the 
           rdfs:label "John Doe" .
 ```
 
-After passing through the bucketizer, the LDES member will have extra triples:
+After passing through the bucketizer, the LDES member will have one or more extra triples
 ```ttl
 <http://example.ord/id/123@456> dct:created "2002-08-13T16:33:18+02:00"^^xsd:dateTime ;
           dct:isVersionOf <http://example.org/id/123> ;
           prov:generatedAtTime "2021-09-07T15:44:05.975Z"^^xsd:dateTime ;
           rdfs:label "John Doe" ;
-          ldes:bucket "j", "jo", "joh", "john", "d", "do", "doe" .
+          ldes:bucket "j"
 ```
+
+Depending on when this LDES member is processed, it is possible for it to have a different bucket
 
 
 ## Install
@@ -41,19 +43,20 @@ A bucketizer should always be used in combination with the LDES client. More inf
 The bucketizer expects a property path as input and should have the following structure `(<predicate1> <predicate2> ...)`
 
 ```
-import { SubstringBucketzer } from '@treecg/ldes-substring-bucketizer'
+import { SubstringBucketzer } from '@treecg/substring-bucketizer'
 
 const run = async (): Promise<void> => {
   const options = {...};
   const url = ...;
+  const pageSize: ...;
 
-  const bucketizer = await SubstringBucketizer.build('(<http://www.w3.org/2000/01/rdf-schema#label>)');
+  const bucketizer = await SubstringBucketizer.build({ propertyPath: '<http://www.w3.org/2000/01/rdf-schema#label>', pageSize: pageSize });
 
   const ldes = LDESClient.createReadStream(url, options);
   ldes.on('data', (member) => {
     bucketizer.bucketize(member.quads, member.id)
 
-    // Continue processing the member, but now the array of quads will have an extra triples, the bucket triples
+    // Continue processing the member, but now the array of quads will have extra triples, the bucket triples
   });
 }
 

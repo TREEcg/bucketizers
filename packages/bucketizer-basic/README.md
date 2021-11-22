@@ -9,20 +9,20 @@ This strategy will create a file called `0.ttl` where the first LDES member will
 ## Install
 
 ```bash
-> npm i @treecg/ldes-basic-bucketizer
+> npm i @treecg/basic-bucketizer
 ```
 
 ## Usage
 
 ```
-import { BasicBucketizer } from '@treecg/ldes-basic-bucketizer'
+import { BasicBucketizer } from '@treecg/basic-bucketizer'
 
 const run = async (): Promise<void> => {
   const options = {...};
   const url = ...;
   const pageSize = 50;
 
-  const bucketizer = await BasicBucketizer.build(pageSize);
+  const bucketizer = await BasicBucketizer.build({pageSize: pageSize});
 
   const ldes = LDESClient.createReadStream(url, options);
   ldes.on('data', (member) => {
