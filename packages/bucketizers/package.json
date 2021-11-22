@@ -1,6 +1,6 @@
 {
   "name": "@treecg/bucketizers",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Package that contains all @treecg bucketizers",
   "author": "Dwight Van Lancker <dwight.vanlancker@hotmail.com>",
   "homepage": "https://github.com/TREEcg/bucketizers#readme",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@treecg/basic-bucketizer": "^1.4.0",
-    "@treecg/geospatial-bucketizer": "^1.0.0",
+    "@treecg/geospatial-bucketizer": "^1.0.1",
     "@treecg/subject-page-bucketizer": "^1.4.1",
     "@treecg/substring-bucketizer": "^1.4.0",
     "@treecg/types": "0.0.16"
