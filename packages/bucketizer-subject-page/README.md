@@ -1,4 +1,5 @@
 # LDES Subject Page Bucketizer
+[![npm](https://img.shields.io/npm/v/@treecg/subject-page-bucketizer)](https://www.npmjs.com/package/@treecg/subject-page-bucketizer)
 
 The purpose of the subject page bucketizer is to fragment the LDES members based on their versionOfPath. This bucketizer assumes URIs comply with the following structure: `http(s)://{domain}/{type}/{concept}(/{reference})*`, e.g. `https://data.vlaanderen.be/id/gemeente/44001`. As the `{reference}` represents the identifier of the object, this part is used to indicate the bucket.
 

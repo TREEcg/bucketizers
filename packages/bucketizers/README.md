@@ -1,4 +1,5 @@
 # Bucketizers
+[![npm](https://img.shields.io/npm/v/@treecg/bucketizers)](https://www.npmjs.com/package/@treecg/bucketizers)
 
 General repository that contains all @treecg bucketizers as dependency and exports them
 

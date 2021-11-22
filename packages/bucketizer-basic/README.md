@@ -1,4 +1,5 @@
 # LDES Basic Bucketizer
+[![npm](https://img.shields.io/npm/v/@treecg/basic-bucketizer)](https://www.npmjs.com/package/@treecg/basic-bucketizer)
 
 The purpose of the basic bucketizer is to fragment the LDES members based on the order they were received. **This bucketizer must be used as a fallback bucketizer in case when no fragmentation strategy was chosen.**
 

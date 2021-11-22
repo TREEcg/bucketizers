@@ -1,4 +1,5 @@
 # LDES Geospatial Bucketizer
+[![npm](https://img.shields.io/npm/v/@treecg/geospatial-bucketizer)](https://www.npmjs.com/package/@treecg/geospatial-bucketizer)
 
 The purpose of the geospatial bucketizer is to apply a geospatial fragmentation to LDES members, based on a property path.
 
