@@ -42,6 +42,15 @@ describe('ldes-substring-bucketizer', () => {
       .to.be.instanceOf(SubstringBucketizer);
   });
 
+  it('should set page size to the default value when not configured', async () => {
+    const options = {
+      propertyPath: '(<http://www.w3.org/2000/01/rdf-schema#label>)',
+    };
+
+    const bucketizer = await SubstringBucketizer.build(options);
+    expect(bucketizer.bucketizerOptions.pageSize).to.equal(50);
+  });
+
   it('should add a bucket quad to the array of quads', async () => {
     const originalLength = member.length;
     bucketizerOptions.pageSize = 20;
@@ -52,7 +61,7 @@ describe('ldes-substring-bucketizer', () => {
     expect(member.length).to.equal(originalLength + 1);
   });
 
-  it('should throw an error when property path is not found', async () => {
+  it('should apply the fallback function when property path is not found', async () => {
     bucketizerOptions.pageSize = 20;
     const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
     const newMember = [
@@ -63,7 +72,10 @@ describe('ldes-substring-bucketizer', () => {
       ),
     ];
 
-    expect(() => bucketizer.bucketize(newMember, 'http://example.org/id/123#456')).to.throw(Error);
+    bucketizer.bucketize(newMember, 'http://example.org/id/123#456');
+
+    const bucketTriple: RDF.Quad = newMember.find(quad => quad.predicate.equals(bucketNode))!;
+    expect(bucketTriple.object.value).to.equal('bucketless-0');
   });
 
   it('should add LDES members to the current page, when page is not full yet', async () => {

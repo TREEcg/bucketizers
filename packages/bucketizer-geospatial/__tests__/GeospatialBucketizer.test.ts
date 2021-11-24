@@ -44,7 +44,7 @@ describe('geospatial-bucketizer', () => {
     expect(bucketizer).to.be.instanceOf(GeospatialBucketizer);
   });
 
-  it('should throw an error when property path is not found', async () => {
+  it('should apply the fallback function when property path is not found', async () => {
     const bucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
     const memberWithoutPropertyPath = [
       factory.quad(
@@ -57,8 +57,10 @@ describe('geospatial-bucketizer', () => {
       ),
     ];
 
-    expect(() => bucketizer.bucketize(memberWithoutPropertyPath, 'http://example.org/id/1'))
-      .to.throw(Error);
+    bucketizer.bucketize(memberWithoutPropertyPath, 'http://example.org/id/2');
+
+    const bucketTriple: RDF.Quad = memberWithoutPropertyPath.find(quad => quad.predicate.equals(bucketNode))!;
+    expect(bucketTriple.object.value).to.equal('bucketless-0');
   });
 
   it('should add one or more bucket triples to a member', async () => {
@@ -95,6 +97,7 @@ describe('geospatial-bucketizer', () => {
     expect(currentState).to.haveOwnProperty('zoomLevel');
     expect(currentState).to.haveOwnProperty('tileColumnMap');
     expect(currentState).to.haveOwnProperty('propertyPathQuads');
+    expect(currentState).to.haveOwnProperty('bucketizerOptions');
   });
 
   // TODO: add extra expect statements for this test
@@ -113,7 +116,7 @@ describe('geospatial-bucketizer', () => {
     expect(currentState.tileColumnMap).to.eql(state.tileColumnMap);
   });
 
-  it('should throw an error when geo literal type is not supported', async () => {
+  it('should apply fallback function when geo literal type is not supported', async () => {
     // At the moment, only WKT is supported
     const bucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
 
@@ -129,7 +132,10 @@ describe('geospatial-bucketizer', () => {
       ),
     ];
 
-    expect(() => bucketizer.bucketize(memberWithoutSupportedGeoType, 'http://example.org/id/4')).to.throw(Error);
+    bucketizer.bucketize(memberWithoutSupportedGeoType, 'http://example.org/id/2');
+
+    const bucketTriple: RDF.Quad = memberWithoutSupportedGeoType.find(quad => quad.predicate.equals(bucketNode))!;
+    expect(bucketTriple.object.value).to.equal('bucketless-0');
   });
 
   it('should update hypermedia controls when a new tile is added', async () => {

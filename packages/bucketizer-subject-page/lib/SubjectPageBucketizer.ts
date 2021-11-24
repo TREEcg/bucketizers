@@ -3,11 +3,8 @@ import type { BucketizerOptions } from '@treecg/types';
 import { Bucketizer } from '@treecg/types';
 
 export class SubjectPageBucketizer extends Bucketizer {
-  private readonly propertyPath: string;
-
-  private constructor(propertyPath: string) {
-    super();
-    this.propertyPath = propertyPath;
+  private constructor(bucketizerOptions: BucketizerOptions) {
+    super(bucketizerOptions);
   }
 
   public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<SubjectPageBucketizer> {
@@ -15,7 +12,9 @@ export class SubjectPageBucketizer extends Bucketizer {
       throw new Error(`[SubjectPageBucketizer]: Please provide a valid property path.`);
     }
 
-    const bucketizer = new SubjectPageBucketizer(bucketizerOptions.propertyPath);
+    // TODO: page size is needed for pages containing the hypermedia controls
+
+    const bucketizer = new SubjectPageBucketizer(bucketizerOptions);
 
     if (state) {
       bucketizer.importState(state);
@@ -26,21 +25,9 @@ export class SubjectPageBucketizer extends Bucketizer {
     return bucketizer;
   }
 
-  public bucketize = (quads: RDF.Quad[], memberId: string): void => {
-    const propertyPathObjects: RDF.Term[] = this.extractPropertyPathObject(quads, memberId);
-
-    if (propertyPathObjects.length <= 0) {
-      throw new Error(`[SubjectPageBucketizer]: No matches found for property path "${this.propertyPath}"`);
-    }
-
-    const buckets = this.createBuckets(propertyPathObjects);
-    const bucketTriples = buckets.map(bucket => this.createBucketTriple(bucket, memberId));
-
-    quads.push(...bucketTriples);
-  };
-
   protected createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
     const buckets: string[] = [];
+
     propertyPathObjects.forEach(propertyPathObject => {
       const parts = propertyPathObject.value.split('/');
       if (parts[parts.length - 1] !== undefined) {

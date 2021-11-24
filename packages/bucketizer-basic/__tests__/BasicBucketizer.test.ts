@@ -82,7 +82,7 @@ describe('bucketizer-basic', () => {
   });
 
   it('should be able to exports its current state', async () => {
-    const bucketizer = await BasicBucketizer.build({ pageSize: 1, propertyPath: '' });
+    const bucketizer = await BasicBucketizer.build({ pageSize: 1 });
     const member = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),
@@ -94,7 +94,20 @@ describe('bucketizer-basic', () => {
     bucketizer.bucketize(member, 'http://example.org/id/123#456');
     const state = bucketizer.exportState();
 
-    expect(state).to.eql({ hypermediaControls: [], propertyPathQuads: [], pageNumber: 0, memberCounter: 1 });
+    const expectedState = {
+      hypermediaControls: [],
+      propertyPathQuads: [],
+      pageNumber: 0,
+      memberCounter: 1,
+      bucketizerOptions: {
+        pageSize: 1,
+        root: 'root',
+      },
+      bucketlessPageNumber: 0,
+      bucketlessPageMemberCounter: 0,
+    };
+
+    expect(state).to.eql(expectedState);
   });
 
   it('should import a previous state', async () => {
@@ -111,7 +124,8 @@ describe('bucketizer-basic', () => {
     expect(bucketizer.memberCounter).to.equal(state.memberCounter);
   });
 
-  it('should throw an error when "pageSize" option is not provided', async () => {
-    await expect(BasicBucketizer.build({})).to.be.rejectedWith(Error);
+  it('should set pageSize to 50 (default) if the option was not provided', async () => {
+    const bucketizer = await BasicBucketizer.build({});
+    expect(bucketizer.bucketizerOptions.pageSize).to.equal(50);
   });
 });

@@ -11,6 +11,8 @@ const expect = chai.expect;
 describe('bucketizer-subject-page', () => {
   let member: RDF.Quad[];
   const factory: RDF.DataFactory = new DataFactory();
+  const bucketNode = factory.namedNode('https://w3id.org/ldes#bucket');
+
   const bucketizerOptions: BucketizerOptions = {
     propertyPath: '(<http://purl.org/dc/terms/isVersionOf>)',
     pageSize: 20,
@@ -36,7 +38,7 @@ describe('bucketizer-subject-page', () => {
       .to.be.instanceOf(SubjectPageBucketizer);
   });
 
-  it('should throw an error when property path is not found', async () => {
+  it('should apply fallback function when property path is not found', async () => {
     const bucketizer = await SubjectPageBucketizer.build(bucketizerOptions);
     const newMember = [
       factory.quad(
@@ -46,7 +48,10 @@ describe('bucketizer-subject-page', () => {
       ),
     ];
 
-    expect(() => bucketizer.bucketize(newMember, 'http://example.org/id/123#456')).to.throw(Error);
+    bucketizer.bucketize(newMember, 'http://example.org/id/123#456');
+
+    const bucketTriple: RDF.Quad = newMember.find(quad => quad.predicate.equals(bucketNode))!;
+    expect(bucketTriple.object.value).to.equal('bucketless-0');
   });
 
   it('should add a bucket quad to the array of quads', async () => {

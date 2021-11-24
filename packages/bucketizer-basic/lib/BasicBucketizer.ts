@@ -1,15 +1,14 @@
 import type * as RDF from '@rdfjs/types';
 import type { BucketizerOptions, RelationParameters } from '@treecg/types';
 import { Bucketizer, RelationType } from '@treecg/types';
+import { logger } from './utils/Logger';
 
 export class BasicBucketizer extends Bucketizer {
-  public pageSize: number;
   public pageNumber: number;
   public memberCounter: number;
 
-  private constructor(pageSize: number) {
-    super();
-    this.pageSize = pageSize;
+  private constructor(bucketizerOptions: BucketizerOptions) {
+    super(bucketizerOptions);
 
     this.pageNumber = 0;
     this.memberCounter = 0;
@@ -17,10 +16,11 @@ export class BasicBucketizer extends Bucketizer {
 
   public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<BasicBucketizer> {
     if (!bucketizerOptions.pageSize) {
-      throw new Error(`[BasicBucketizer]: Please provide a page size.`);
+      logger.warn(`No page size provided. Page size is set to default value = 50`);
+      bucketizerOptions.pageSize = 50;
     }
 
-    const bucketizer = new BasicBucketizer(bucketizerOptions.pageSize);
+    const bucketizer = new BasicBucketizer(bucketizerOptions);
 
     if (state) {
       bucketizer.importState(state);
@@ -30,7 +30,9 @@ export class BasicBucketizer extends Bucketizer {
   }
 
   public bucketize = (quads: RDF.Quad[], memberId: string): void => {
-    if (this.memberCounter >= this.pageSize) {
+    const pageSize = this.bucketizerOptions.pageSize!;
+
+    if (this.memberCounter >= pageSize) {
       const currentPage = this.pageNumber;
       this.increasePageNumber();
       this.resetMemberCounter();
@@ -44,7 +46,7 @@ export class BasicBucketizer extends Bucketizer {
     this.increaseMemberCounter();
   };
 
-  public createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
+  protected createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
     throw new Error(`[BasicBucketizer]: Method not implemented`);
   };
 

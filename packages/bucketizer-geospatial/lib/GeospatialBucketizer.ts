@@ -3,8 +3,6 @@ import type { BucketizerOptions, RelationParameters } from '@treecg/types';
 import { Bucketizer, RelationType } from '@treecg/types';
 import { SlippyMaps } from './utils/SlippyMaps';
 
-const ROOT = 'root';
-
 export class GeospatialBucketizer extends Bucketizer {
   private readonly propertyPath: string;
   private zoomLevel: number;
@@ -13,14 +11,14 @@ export class GeospatialBucketizer extends Bucketizer {
   // Stores all y's for a certain x
   private tileColumnMap: Map<number, number[]>;
 
-  private constructor(propertyPath: string, zoomLevel: number) {
-    super();
-    this.propertyPath = propertyPath;
+  private constructor(bucketizerOptions: BucketizerOptions, zoomLevel: number) {
+    super(bucketizerOptions);
+
     this.zoomLevel = zoomLevel;
     this.slippyMaps = new SlippyMaps(zoomLevel);
     this.tileColumnMap = new Map();
 
-    this.addHypermediaControls(ROOT, []);
+    this.addHypermediaControls(this.bucketizerOptions.root!, []);
   }
 
   public static async build(
@@ -32,7 +30,7 @@ export class GeospatialBucketizer extends Bucketizer {
       throw new Error(`[GeospatialBucketizer]: Please provide a valid property path.`);
     }
 
-    const bucketizer = new GeospatialBucketizer(bucketizerOptions.propertyPath, zoomLevel);
+    const bucketizer = new GeospatialBucketizer(bucketizerOptions, zoomLevel);
 
     if (state) {
       bucketizer.importState(state);
@@ -42,19 +40,6 @@ export class GeospatialBucketizer extends Bucketizer {
 
     return bucketizer;
   }
-
-  public bucketize = (quads: RDF.Quad[], memberId: string): void => {
-    const propertyPathObjects: RDF.Term[] = this.extractPropertyPathObject(quads, memberId);
-
-    if (propertyPathObjects.length <= 0) {
-      throw new Error(`[GeospatialBucketizer]: No matches found for property path "${this.propertyPath}"`);
-    }
-
-    const buckets = this.createBuckets(propertyPathObjects);
-    const bucketTriples = buckets.map(bucket => this.createBucketTriple(bucket, memberId));
-
-    quads.push(...bucketTriples);
-  };
 
   protected createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
     const buckets: string[] = [];
@@ -87,15 +72,13 @@ export class GeospatialBucketizer extends Bucketizer {
               this.addHypermediaControls(columnPath, columnHypermediaControls);
             }
 
-            if (!columnHypermediaControls.some(parameterObject => parameterObject.nodeId === leafNodePath)) {
-              this.addHypermediaControls(
-                columnPath,
-                [...columnHypermediaControls, this.createRelationParameters(leafNodePath, wktString)],
-              );
-            }
+            this.addHypermediaControls(
+              columnPath,
+              [...columnHypermediaControls, this.createRelationParameters(leafNodePath, wktString)],
+            );
 
             // Update hypermedia controls for root
-            const rootHypermediaControls = this.getHypermediaControls(ROOT)!;
+            const rootHypermediaControls = this.getHypermediaControls(this.bucketizerOptions.root!)!;
             const columnRelationParameters =
               rootHypermediaControls.find(parameterObject => parameterObject.nodeId === columnPath);
 
@@ -111,7 +94,7 @@ export class GeospatialBucketizer extends Bucketizer {
               ];
             } else {
               this.addHypermediaControls(
-                ROOT,
+                this.bucketizerOptions.root!,
                 [...rootHypermediaControls, this.createRelationParameters(columnPath, wktString)],
               );
             }

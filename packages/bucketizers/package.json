@@ -25,6 +25,7 @@
     "@treecg/geospatial-bucketizer": "^1.0.1",
     "@treecg/subject-page-bucketizer": "^1.4.1",
     "@treecg/substring-bucketizer": "^1.4.0",
-    "@treecg/types": "0.0.16"
+    "@treecg/types": "0.0.18",
+    "winston": "^3.3.3"
   }
 }

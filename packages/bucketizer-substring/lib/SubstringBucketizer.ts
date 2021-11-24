@@ -1,32 +1,29 @@
 import type * as RDF from '@rdfjs/types';
 import type { BucketizerOptions, RelationParameters } from '@treecg/types';
 import { Bucketizer, RelationType } from '@treecg/types';
-
-const ROOT = 'root';
+import { logger } from './utils/Logger';
 
 export class SubstringBucketizer extends Bucketizer {
-  public propertyPath: string;
-  public pageSize: number;
   public bucketCounterMap: Map<string, number>;
 
-  private constructor(
-    propertyPath: string,
-    pageSize: number,
-  ) {
-    super();
-    this.propertyPath = propertyPath;
-    this.pageSize = pageSize;
+  private constructor(bucketizerOptions: BucketizerOptions) {
+    super(bucketizerOptions);
 
     this.bucketCounterMap = new Map<string, number>();
-    this.bucketCounterMap.set(ROOT, 0);
+    this.bucketCounterMap.set(this.bucketizerOptions.root!, 0);
   }
 
   public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<SubstringBucketizer> {
-    if (!bucketizerOptions.propertyPath || !bucketizerOptions.pageSize) {
-      throw new Error(`[SubstringBucketizer]: Please provide both a valid property path and page size.`);
+    if (!bucketizerOptions.propertyPath) {
+      throw new Error(`[SubstringBucketizer]: Please provide a valid property path.`);
     }
 
-    const bucketizer = new SubstringBucketizer(bucketizerOptions.propertyPath, bucketizerOptions.pageSize);
+    if (!bucketizerOptions.pageSize) {
+      logger.warn(`No page size was configured. Page size is set to default value = 50`);
+      bucketizerOptions.pageSize = 50;
+    }
+
+    const bucketizer = new SubstringBucketizer(bucketizerOptions);
 
     if (state) {
       bucketizer.importState(state);
@@ -37,25 +34,13 @@ export class SubstringBucketizer extends Bucketizer {
     return bucketizer;
   }
 
-  public bucketize = (quads: RDF.Quad[], memberId: string): void => {
-    const propertyPathObjects: RDF.Term[] = this.extractPropertyPathObject(quads, memberId);
-
-    if (propertyPathObjects.length <= 0) {
-      throw new Error(`[SubstringBucketizer]: No matches found for property path "${this.propertyPath}"`);
-    }
-
-    const buckets = this.createBuckets(propertyPathObjects);
-    const bucketTriples = buckets.map(bucket => this.createBucketTriple(bucket, memberId));
-    quads.push(...bucketTriples);
-  };
-
   protected createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
     const buckets: string[] = [];
     propertyPathObjects.forEach(propertyPathObject => {
       const normalizedLiteral = this.normalize(propertyPathObject.value);
 
       const parts = normalizedLiteral.split(' ');
-      let currentBucket = ROOT;
+      let currentBucket = this.bucketizerOptions.root!;
       let substring = '';
       let bucketFound = false;
 
@@ -134,14 +119,14 @@ export class SubstringBucketizer extends Bucketizer {
    */
   private readonly normalize = (literal: string): string =>
     literal.trim().normalize('NFKD')
-    // .replace(/\p{Diacritic}/gu, '')
+      // .replace(/\p{Diacritic}/gu, '')
       .replace(/[\u0300-\u036F]/gu, '')
       .replace(/[,']/gu, '')
       .replace(/[-]/gu, ' ')
       .toLowerCase();
 
   private readonly hasRoom = (bucket: string): boolean =>
-    !this.bucketCounterMap.has(bucket) || this.bucketCounterMap.get(bucket)! < this.pageSize;
+    !this.bucketCounterMap.has(bucket) || this.bucketCounterMap.get(bucket)! < this.bucketizerOptions.pageSize!;
 
   private readonly updateCounter = (bucket: string): void => {
     // A member who has multiple objects for the property path (e.g. language tags)
