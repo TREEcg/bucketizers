@@ -51,16 +51,6 @@ describe('ldes-substring-bucketizer', () => {
     expect(bucketizer.bucketizerOptions.pageSize).to.equal(50);
   });
 
-  it('should add a bucket quad to the array of quads', async () => {
-    const originalLength = member.length;
-    bucketizerOptions.pageSize = 20;
-    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
-
-    bucketizer.bucketize(member, 'http://example.org/id/123#456');
-
-    expect(member.length).to.equal(originalLength + 1);
-  });
-
   it('should apply the fallback function when property path is not found', async () => {
     bucketizerOptions.pageSize = 20;
     const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
@@ -76,6 +66,47 @@ describe('ldes-substring-bucketizer', () => {
 
     const bucketTriple: RDF.Quad = newMember.find(quad => quad.predicate.equals(bucketNode))!;
     expect(bucketTriple.object.value).to.equal('bucketless-0');
+  });
+
+  it('should add one or more bucket triples to a member', async () => {
+    const originalLength = member.length;
+    bucketizerOptions.pageSize = 20;
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
+
+    bucketizer.bucketize(member, 'http://example.org/id/123#456');
+    const bucketQuads = member.filter(quad => quad.predicate.equals(bucketNode))!;
+
+    expect(bucketQuads.length).to.be.greaterThan(0);
+  });
+
+  it('should throw an error when property path option is not set', async () => {
+    await expect(SubstringBucketizer.build({})).to.be.rejectedWith(Error);
+  });
+
+  it('should be able to export its current state', async () => {
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
+    const currentState = bucketizer.exportState();
+
+    expect(currentState).to.haveOwnProperty('hypermediaControls');
+    expect(currentState).to.haveOwnProperty('propertyPathQuads');
+    expect(currentState).to.haveOwnProperty('bucketizerOptions');
+    expect(currentState).to.haveOwnProperty('bucketlessPageNumber');
+    expect(currentState).to.haveOwnProperty('bucketlessPageMemberCounter');
+    expect(currentState).to.haveOwnProperty('bucketCounter');
+  });
+
+  it('should be able to import a previous state', async () => {
+    const state = {
+      hypermediaControls: [],
+      propertyPathQuads: [],
+      bucketCounter: [],
+    };
+
+    const bucketizer = await SubstringBucketizer.build(bucketizerOptions, state);
+
+    expect(bucketizer.getBucketHypermediaControlsMap()).to.eql(new Map(state.hypermediaControls));
+    expect(bucketizer.getPropertyPathQuads()).to.eql(state.propertyPathQuads);
+    expect(bucketizer.bucketCounterMap).to.eql(new Map(state.bucketCounter));
   });
 
   it('should add LDES members to the current page, when page is not full yet', async () => {
@@ -242,32 +273,5 @@ describe('ldes-substring-bucketizer', () => {
         expect(quad.object.value).to.equal('\u006E');
       }
     });
-  });
-
-  it('should throw an error when "propertyPath" and/or "pageSize" option is not provided', async () => {
-    await expect(SubstringBucketizer.build({})).to.be.rejectedWith(Error);
-  });
-
-  it('should be able to import a previous state', async () => {
-    const state = {
-      hypermediaControls: [],
-      propertyPathQuads: [],
-      bucketCounter: [],
-    };
-
-    const bucketizer = await SubstringBucketizer.build(bucketizerOptions, state);
-
-    expect(bucketizer.getBucketHypermediaControlsMap()).to.eql(new Map(state.hypermediaControls));
-    expect(bucketizer.getPropertyPathQuads()).to.eql(state.propertyPathQuads);
-    expect(bucketizer.bucketCounterMap).to.eql(new Map(state.bucketCounter));
-  });
-
-  it('should be able to export its current state', async () => {
-    const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
-    const currentState = bucketizer.exportState();
-
-    expect(currentState).to.haveOwnProperty('hypermediaControls');
-    expect(currentState).to.haveOwnProperty('bucketCounter');
-    expect(currentState).to.haveOwnProperty('propertyPathQuads');
   });
 });

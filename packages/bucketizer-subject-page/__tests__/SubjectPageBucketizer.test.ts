@@ -54,12 +54,29 @@ describe('bucketizer-subject-page', () => {
     expect(bucketTriple.object.value).to.equal('bucketless-0');
   });
 
-  it('should add a bucket quad to the array of quads', async () => {
+  it('should add one or more bucket triples to a member', async () => {
     const originalLength = member.length;
     const bucketizer = await SubjectPageBucketizer.build(bucketizerOptions);
     bucketizer.bucketize(member, 'http://example.org/id/123#456');
 
-    expect(member.length).to.equal(originalLength + 1);
+    const bucketQuads = member.filter(quad => quad.predicate.equals(bucketNode))!;
+
+    expect(bucketQuads.length).to.be.greaterThan(0);
+  });
+
+  it('should throw an error when property path option is not set', async () => {
+    await expect(SubjectPageBucketizer.build({})).to.be.rejectedWith(Error);
+  });
+
+  it('should be able to export its current state', async () => {
+    const bucketizer = await SubjectPageBucketizer.build(bucketizerOptions);
+    const currentState = bucketizer.exportState();
+
+    expect(currentState).to.haveOwnProperty('hypermediaControls');
+    expect(currentState).to.haveOwnProperty('propertyPathQuads');
+    expect(currentState).to.haveOwnProperty('bucketizerOptions');
+    expect(currentState).to.haveOwnProperty('bucketlessPageNumber');
+    expect(currentState).to.haveOwnProperty('bucketlessPageMemberCounter');
   });
 
   it('should import a previous state', async () => {
@@ -90,9 +107,5 @@ describe('bucketizer-subject-page', () => {
 
     expect(bucketizer.getPropertyPathQuads()).to.eql(state.propertyPathQuads);
     expect(bucketizer.getBucketHypermediaControlsMap()).to.eql(new Map(state.hypermediaControls));
-  });
-
-  it('should throw an error when "propertyPath" option is not provided', async () => {
-    await expect(SubjectPageBucketizer.build({})).to.be.rejectedWith(Error);
   });
 });

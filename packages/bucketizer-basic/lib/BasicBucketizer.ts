@@ -1,7 +1,6 @@
 import type * as RDF from '@rdfjs/types';
 import type { BucketizerOptions, RelationParameters } from '@treecg/types';
 import { Bucketizer, RelationType } from '@treecg/types';
-import { logger } from './utils/Logger';
 
 export class BasicBucketizer extends Bucketizer {
   public pageNumber: number;
@@ -15,12 +14,12 @@ export class BasicBucketizer extends Bucketizer {
   }
 
   public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<BasicBucketizer> {
+    const bucketizer = new BasicBucketizer(bucketizerOptions);
+
     if (!bucketizerOptions.pageSize) {
-      logger.warn(`No page size provided. Page size is set to default value = 50`);
+      bucketizer.logger.warn(`No page size provided. Page size is set to default value = 50`);
       bucketizerOptions.pageSize = 50;
     }
-
-    const bucketizer = new BasicBucketizer(bucketizerOptions);
 
     if (state) {
       bucketizer.importState(state);

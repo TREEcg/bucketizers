@@ -17,6 +17,8 @@ describe('geospatial-bucketizer', () => {
   const factory: RDF.DataFactory = new DataFactory();
   const bucketNode = factory.namedNode('https://w3id.org/ldes#bucket');
 
+  let bucketizer: GeospatialBucketizer;
+
   beforeEach(async () => {
     member = [
       factory.quad(
@@ -31,7 +33,11 @@ describe('geospatial-bucketizer', () => {
 
     bucketizerOptions = {
       propertyPath: '<http://www.w3.org/ns/dcat#bbox>',
+      pageSize: 50,
     };
+
+    bucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
+    bucketizer.logger.silent = true;
   });
 
   it('should be a function', async () => {
@@ -39,13 +45,19 @@ describe('geospatial-bucketizer', () => {
   });
 
   it('should be a constructor', async () => {
-    const bucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
-
     expect(bucketizer).to.be.instanceOf(GeospatialBucketizer);
   });
 
+  it('should set page size to the default value when not configured', async () => {
+    bucketizerOptions = {
+      propertyPath: '<http://www.w3.org/ns/dcat#bbox>',
+    };
+
+    const geospatialBucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
+    expect(geospatialBucketizer.bucketizerOptions.pageSize).to.equal(50);
+  });
+
   it('should apply the fallback function when property path is not found', async () => {
-    const bucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
     const memberWithoutPropertyPath = [
       factory.quad(
         factory.namedNode('http://example.org/id/2'),
@@ -64,9 +76,6 @@ describe('geospatial-bucketizer', () => {
   });
 
   it('should add one or more bucket triples to a member', async () => {
-    const bucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
-
-    // Change literal, so flattenArray function must be executed as well
     member = [
       factory.quad(
         factory.namedNode('http://example.org/id/1'),
@@ -90,36 +99,40 @@ describe('geospatial-bucketizer', () => {
   });
 
   it('should be able to export its current state', async () => {
-    const bucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
     const currentState = bucketizer.exportState();
 
     expect(currentState).to.haveOwnProperty('hypermediaControls');
     expect(currentState).to.haveOwnProperty('zoomLevel');
-    expect(currentState).to.haveOwnProperty('tileColumnMap');
+    expect(currentState).to.haveOwnProperty('tileMetadataMap');
     expect(currentState).to.haveOwnProperty('propertyPathQuads');
     expect(currentState).to.haveOwnProperty('bucketizerOptions');
+    expect(currentState).to.haveOwnProperty('bucketlessPageNumber');
+    expect(currentState).to.haveOwnProperty('bucketlessPageMemberCounter');
   });
 
-  // TODO: add extra expect statements for this test
   it('should be able to import a previous state', async () => {
     const state: any = {
       hypermediaControls: [],
       propertyPathQuads: [],
       zoomLevel: 10,
-      tileColumnMap: [[0, [1]]],
+      tileMetadataMap: [[0, [1]]],
+      bucketlessPageNumber: 0,
+      bucketlessPageMemberCounter: 0,
     };
 
-    const bucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel, state);
-    const currentState = bucketizer.exportState();
+    const bucketizerWithState = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel, state);
+    const currentState = bucketizerWithState.exportState();
 
     expect(currentState.zoomLevel).to.equal(state.zoomLevel);
     expect(currentState.tileColumnMap).to.eql(state.tileColumnMap);
+    expect(currentState.bucketlessPageNumber).to.equal(state.bucketlessPageNumber);
+    expect(currentState.bucketlessPageMemberCounter).to.eql(state.bucketlessPageMemberCounter);
+    expect(bucketizerWithState.getPropertyPathQuads()).to.eql(state.propertyPathQuads);
+    expect(bucketizerWithState.getBucketHypermediaControlsMap()).to.eql(new Map(state.hypermediaControls));
   });
 
   it('should apply fallback function when geo literal type is not supported', async () => {
     // At the moment, only WKT is supported
-    const bucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
-
     const memberWithoutSupportedGeoType = [
       factory.quad(
         factory.namedNode('http://example.org/id/4'),
@@ -138,36 +151,6 @@ describe('geospatial-bucketizer', () => {
     expect(bucketTriple.object.value).to.equal('bucketless-0');
   });
 
-  it('should update hypermedia controls when a new tile is added', async () => {
-    const otherMember = [
-      factory.quad(
-        factory.namedNode('http://example.org/id/5'),
-        factory.namedNode('http://www.w3.org/ns/dcat#bbox'),
-        factory.literal(
-          'POINT(-148.79727588411623 77.06742539146222)',
-          factory.namedNode('http://www.opengis.net/ont/geosparql#wktLiteral'),
-        ),
-      ),
-    ];
-
-    const bucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
-    const slippyMaps = new SlippyMaps(zoomLevel);
-
-    // Member has tile X = 1 and Y = 1
-    bucketizer.bucketize(member, 'http://example.org/id/1');
-    let columnRelationParameters = bucketizer.getHypermediaControls('root')![0];
-    const boundingBox1 = slippyMaps.getTileBoundingBoxWktString(1, 1, zoomLevel);
-    expect(columnRelationParameters.value![0].value).to.equal(boundingBox1);
-
-    // OtherMember has tile X = 1 and Y = 2
-    bucketizer.bucketize(otherMember, 'http://example.org/id/5');
-    columnRelationParameters = bucketizer.getHypermediaControls('root')![0];
-    const boundingBox2 = slippyMaps.getTileBoundingBoxWktString(1, 2, zoomLevel);
-
-    const updatedBoundingBox = slippyMaps.mergePolygons(boundingBox1, boundingBox2);
-    expect(columnRelationParameters.value![0].value).to.equal(updatedBoundingBox);
-  });
-
   it('should be able to handle WKT literals with their coordinate system present in the string', async () => {
     const literal = factory.literal(
       // eslint-disable-next-line max-len
@@ -177,5 +160,71 @@ describe('geospatial-bucketizer', () => {
 
     const slippyMaps = new SlippyMaps(4);
     expect(() => slippyMaps.calculateTiles(literal)).to.not.throw(Error);
+  });
+
+  it('should add members to the same tile file when page size is not reached', async () => {
+    const member1 = [
+      factory.quad(
+        factory.namedNode('http://example.org/id/5'),
+        factory.namedNode('http://www.w3.org/ns/dcat#bbox'),
+        factory.literal('POINT(3.1516329600511916 51.08919224082551)',
+          factory.namedNode('http://www.opengis.net/ont/geosparql#wktLiteral')),
+      ),
+    ];
+
+    const member2 = [
+      factory.quad(
+        factory.namedNode('http://example.org/id/6'),
+        factory.namedNode('http://www.w3.org/ns/dcat#bbox'),
+        factory.literal('POINT(4.777609522551192 50.784567520377436)',
+          factory.namedNode('http://www.opengis.net/ont/geosparql#wktLiteral')),
+      ),
+    ];
+
+    bucketizer.bucketize(member1, 'http://example.org/id/5');
+    bucketizer.bucketize(member2, 'http://example.org/id/6');
+
+    const member1Bucket = member1.find(quad => quad.predicate.equals(bucketNode))!;
+    const member2Bucket = member2.find(quad => quad.predicate.equals(bucketNode))!;
+
+    expect(member1Bucket.object.value).to.equal(member2Bucket.object.value);
+  });
+
+  it('should update tile metadata when page limit is reached', async () => {
+    bucketizerOptions = {
+      propertyPath: '<http://www.w3.org/ns/dcat#bbox>',
+      pageSize: 1,
+    };
+
+    // Tile X: 8, Y: 5
+    const member1 = [
+      factory.quad(
+        factory.namedNode('http://example.org/id/5'),
+        factory.namedNode('http://www.w3.org/ns/dcat#bbox'),
+        factory.literal('POINT(3.1516329600511916 51.08919224082551)',
+          factory.namedNode('http://www.opengis.net/ont/geosparql#wktLiteral')),
+      ),
+    ];
+
+    // Tile X: 8, Y: 5 (same tile, but should be in different bucket)
+    const member2 = [
+      factory.quad(
+        factory.namedNode('http://example.org/id/6'),
+        factory.namedNode('http://www.w3.org/ns/dcat#bbox'),
+        factory.literal('POINT(4.777609522551192 50.784567520377436)',
+          factory.namedNode('http://www.opengis.net/ont/geosparql#wktLiteral')),
+      ),
+    ];
+
+    const geospatialBucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
+    geospatialBucketizer.logger.silent = true;
+    geospatialBucketizer.bucketize(member1, 'http://example.org/id/5');
+    geospatialBucketizer.bucketize(member2, 'http://example.org/id/6');
+
+    const member1Bucket = member1.find(quad => quad.predicate.equals(bucketNode))!;
+    const member2Bucket = member2.find(quad => quad.predicate.equals(bucketNode))!;
+
+    expect(member1Bucket.object.value).to.equal('4/8/5-0');
+    expect(member2Bucket.object.value).to.equal('4/8/5-1');
   });
 });

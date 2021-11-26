@@ -3,20 +3,25 @@ import type { BucketizerOptions, RelationParameters } from '@treecg/types';
 import { Bucketizer, RelationType } from '@treecg/types';
 import { SlippyMaps } from './utils/SlippyMaps';
 
+export interface ITileMetadata {
+  pageNumber: number;
+  memberCounter: number;
+}
+
 export class GeospatialBucketizer extends Bucketizer {
   private readonly propertyPath: string;
   private zoomLevel: number;
   private readonly slippyMaps: SlippyMaps;
 
-  // Stores all y's for a certain x
-  private tileColumnMap: Map<number, number[]>;
+  // Store current page number and numbers of members for each tile (x/y)
+  private tileMetadataMap: Map<string, ITileMetadata>;
 
   private constructor(bucketizerOptions: BucketizerOptions, zoomLevel: number) {
     super(bucketizerOptions);
 
     this.zoomLevel = zoomLevel;
     this.slippyMaps = new SlippyMaps(zoomLevel);
-    this.tileColumnMap = new Map();
+    this.tileMetadataMap = new Map();
 
     this.addHypermediaControls(this.bucketizerOptions.root!, []);
   }
@@ -31,6 +36,11 @@ export class GeospatialBucketizer extends Bucketizer {
     }
 
     const bucketizer = new GeospatialBucketizer(bucketizerOptions, zoomLevel);
+
+    if (!bucketizerOptions.pageSize) {
+      bucketizer.logger.warn(`Page size was not configured and will be set to default value = 50`);
+      bucketizer.bucketizerOptions.pageSize = 50;
+    }
 
     if (state) {
       bucketizer.importState(state);
@@ -48,36 +58,23 @@ export class GeospatialBucketizer extends Bucketizer {
       const tilesMap = this.slippyMaps.calculateTiles(term);
 
       tilesMap.forEach((values, x) => {
-        if (!this.tileColumnMap.get(x)) {
-          this.tileColumnMap.set(x, []);
-        }
-
         values.forEach(y => {
           const leafNodePath = `${this.zoomLevel}/${x}/${y}`;
           const columnPath = `${this.zoomLevel}/${x}`;
+          const pageSize = this.bucketizerOptions.pageSize!;
+          const wktString = this.slippyMaps.getTileBoundingBoxWktString(x, y, this.zoomLevel);
 
-          buckets.push(leafNodePath);
+          let metadata: ITileMetadata;
+          if (this.tileMetadataMap.has(leafNodePath)) {
+            metadata = this.tileMetadataMap.get(leafNodePath)!;
 
-          // Update hypermedia controls
-          const leafNodes = this.tileColumnMap.get(x)!;
-
-          if (!leafNodes.includes(y)) {
-            this.tileColumnMap.set(x, [...leafNodes, y]);
-            const wktString = this.slippyMaps.getTileBoundingBoxWktString(x, y, this.zoomLevel);
-
-            // Update hypermedia controls for column (x)
-            let columnHypermediaControls = this.getHypermediaControls(columnPath);
-            if (!columnHypermediaControls) {
-              columnHypermediaControls = [];
-              this.addHypermediaControls(columnPath, columnHypermediaControls);
+            if (metadata.memberCounter === pageSize) {
+              this.updateTileMetadata(leafNodePath, columnPath, wktString, metadata);
             }
+          } else {
+            metadata = this.createTileMetadata(leafNodePath, columnPath, wktString);
 
-            this.addHypermediaControls(
-              columnPath,
-              [...columnHypermediaControls, this.createRelationParameters(leafNodePath, wktString)],
-            );
-
-            // Update hypermedia controls for root
+            // Update hypermedia controls for root (extend polygon with bounding box of new tile)
             const rootHypermediaControls = this.getHypermediaControls(this.bucketizerOptions.root!)!;
             const columnRelationParameters =
               rootHypermediaControls.find(parameterObject => parameterObject.nodeId === columnPath);
@@ -99,6 +96,9 @@ export class GeospatialBucketizer extends Bucketizer {
               );
             }
           }
+
+          buckets.push(`${leafNodePath}-${metadata.pageNumber}`);
+          metadata.memberCounter++;
         });
       });
     });
@@ -118,7 +118,7 @@ export class GeospatialBucketizer extends Bucketizer {
   public exportState(): any {
     const state = super.exportState();
     state.zoomLevel = this.zoomLevel;
-    state.tileColumnMap = Array.from(this.tileColumnMap.entries());
+    state.tileMetadataMap = Array.from(this.tileMetadataMap.entries());
 
     return state;
   }
@@ -126,6 +126,53 @@ export class GeospatialBucketizer extends Bucketizer {
   public importState(state: any): void {
     super.importState(state);
     this.zoomLevel = state.zoomLevel;
-    this.tileColumnMap = new Map(state.tileColumnMap);
+    this.tileMetadataMap = new Map(state.tileMetadataMap);
   }
+
+  private readonly createTileMetadata = (tilePath: string, columnPath: string, wktString: string): ITileMetadata => {
+    const metadata: ITileMetadata = {
+      pageNumber: 0,
+      memberCounter: 0,
+    };
+
+    this.tileMetadataMap.set(tilePath, metadata);
+
+    // Update column hypermedia controls
+    this.updateColumnHypermediaControls(columnPath, tilePath, wktString, metadata.pageNumber);
+
+    return metadata;
+  };
+
+  private readonly updateTileMetadata = (
+    tilePath: string,
+    columnPath: string,
+    wktString: string,
+    metadata: ITileMetadata,
+  ): void => {
+    metadata.pageNumber++;
+    metadata.memberCounter = 0;
+
+    // Add new page to column hypermedia controls
+    this.updateColumnHypermediaControls(columnPath, tilePath, wktString, metadata.pageNumber);
+  };
+
+  private readonly updateColumnHypermediaControls = (
+    columnPath: string,
+    tilePath: string,
+    wktString: string,
+    pageNumber: number,
+  ): void => {
+    let columnHypermediaControls = this.getHypermediaControls(columnPath);
+    const paginatedTilePath = `${tilePath}-${pageNumber}`;
+
+    if (!columnHypermediaControls) {
+      columnHypermediaControls = [];
+    }
+
+    this.addHypermediaControls(columnPath,
+      [
+        ...columnHypermediaControls,
+        this.createRelationParameters(paginatedTilePath, wktString),
+      ]);
+  };
 }

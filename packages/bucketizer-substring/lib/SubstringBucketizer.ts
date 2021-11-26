@@ -1,7 +1,6 @@
 import type * as RDF from '@rdfjs/types';
 import type { BucketizerOptions, RelationParameters } from '@treecg/types';
 import { Bucketizer, RelationType } from '@treecg/types';
-import { logger } from './utils/Logger';
 
 export class SubstringBucketizer extends Bucketizer {
   public bucketCounterMap: Map<string, number>;
@@ -18,12 +17,12 @@ export class SubstringBucketizer extends Bucketizer {
       throw new Error(`[SubstringBucketizer]: Please provide a valid property path.`);
     }
 
-    if (!bucketizerOptions.pageSize) {
-      logger.warn(`No page size was configured. Page size is set to default value = 50`);
-      bucketizerOptions.pageSize = 50;
-    }
-
     const bucketizer = new SubstringBucketizer(bucketizerOptions);
+
+    if (!bucketizerOptions.pageSize) {
+      bucketizer.logger.warn(`No page size was configured. Page size is set to default value = 50`);
+      bucketizer.bucketizerOptions.pageSize = 50;
+    }
 
     if (state) {
       bucketizer.importState(state);

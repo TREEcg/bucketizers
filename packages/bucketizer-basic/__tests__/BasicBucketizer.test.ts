@@ -20,6 +20,11 @@ describe('bucketizer-basic', () => {
     expect(bucketizer).to.be.instanceOf(BasicBucketizer);
   });
 
+  it('should set page size to the default value when not configured', async () => {
+    const bucketizer = await BasicBucketizer.build({});
+    expect(bucketizer.bucketizerOptions.pageSize).to.equal(50);
+  });
+
   it('should add members to the same page when it is not full', async () => {
     const bucketizer = await BasicBucketizer.build({ pageSize: 20, propertyPath: '' });
     const member = [
@@ -49,7 +54,7 @@ describe('bucketizer-basic', () => {
   });
 
   it('should add a member to a new page when current page is full', async () => {
-    const bucketizer = await BasicBucketizer.build({ pageSize: 1, propertyPath: '' });
+    const bucketizer = await BasicBucketizer.build({ pageSize: 1 });
     const member = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),
@@ -81,33 +86,17 @@ describe('bucketizer-basic', () => {
     });
   });
 
-  it('should be able to exports its current state', async () => {
+  it('should be able to export its current state', async () => {
     const bucketizer = await BasicBucketizer.build({ pageSize: 1 });
-    const member = [
-      factory.quad(
-        factory.namedNode('http://example.org/id/123#456'),
-        factory.namedNode('http://purl.org/dc/terms/isVersionOf'),
-        factory.namedNode('http://example.org/id/123'),
-      ),
-    ];
+    const currentState = bucketizer.exportState();
 
-    bucketizer.bucketize(member, 'http://example.org/id/123#456');
-    const state = bucketizer.exportState();
-
-    const expectedState = {
-      hypermediaControls: [],
-      propertyPathQuads: [],
-      pageNumber: 0,
-      memberCounter: 1,
-      bucketizerOptions: {
-        pageSize: 1,
-        root: 'root',
-      },
-      bucketlessPageNumber: 0,
-      bucketlessPageMemberCounter: 0,
-    };
-
-    expect(state).to.eql(expectedState);
+    expect(currentState).to.haveOwnProperty('hypermediaControls');
+    expect(currentState).to.haveOwnProperty('propertyPathQuads');
+    expect(currentState).to.haveOwnProperty('pageNumber');
+    expect(currentState).to.haveOwnProperty('memberCounter');
+    expect(currentState).to.haveOwnProperty('bucketizerOptions');
+    expect(currentState).to.haveOwnProperty('bucketlessPageNumber');
+    expect(currentState).to.haveOwnProperty('bucketlessPageMemberCounter');
   });
 
   it('should import a previous state', async () => {
@@ -118,14 +107,11 @@ describe('bucketizer-basic', () => {
       memberCounter: 5,
     };
 
-    const bucketizer = await BasicBucketizer.build({ pageSize: 10, propertyPath: '' }, state);
+    const bucketizer = await BasicBucketizer.build({ pageSize: 10 }, state);
 
     expect(bucketizer.pageNumber).to.equal(state.pageNumber);
     expect(bucketizer.memberCounter).to.equal(state.memberCounter);
-  });
-
-  it('should set pageSize to 50 (default) if the option was not provided', async () => {
-    const bucketizer = await BasicBucketizer.build({});
-    expect(bucketizer.bucketizerOptions.pageSize).to.equal(50);
+    expect(bucketizer.getPropertyPathQuads()).to.eql(state.propertyPathQuads);
+    expect(bucketizer.getBucketHypermediaControlsMap()).to.eql(new Map(state.hypermediaControls));
   });
 });
