@@ -27,7 +27,7 @@
     "url": "https://github.com/TREEcg/bucketizers/issues"
   },
   "dependencies": {
-    "@treecg/types": "0.0.20",
+    "@treecg/types": "0.0.21",
     "@turf/bbox-polygon": "^6.5.0",
     "@turf/turf": "^6.5.0",
     "geojson-dissolve": "^3.1.0",
