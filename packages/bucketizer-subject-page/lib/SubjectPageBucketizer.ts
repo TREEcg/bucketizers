@@ -1,25 +1,19 @@
 import type * as RDF from '@rdfjs/types';
-import type { BucketizerOptions } from '@treecg/types';
-import { Bucketizer } from '@treecg/types';
+import { BucketizerCoreExt, BucketizerCoreExtOptions } from '../../bucketizer-basic/node_modules/@treecg/bucketizer-core';
 
-export class SubjectPageBucketizer extends Bucketizer {
-  private constructor(bucketizerOptions: BucketizerOptions) {
+export type SubjectInputType = Partial<BucketizerCoreExtOptions>;
+export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
+  private constructor(bucketizerOptions: SubjectInputType) {
     super(bucketizerOptions);
   }
 
-  public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<SubjectPageBucketizer> {
-    if (!bucketizerOptions.propertyPath) {
-      throw new Error(`[SubjectPageBucketizer]: Please provide a valid property path.`);
-    }
-
-    // TODO: page size is needed for pages containing the hypermedia controls
-
+  public static async build(bucketizerOptions: SubjectInputType, state?: any): Promise<SubjectPageBucketizer> {
     const bucketizer = new SubjectPageBucketizer(bucketizerOptions);
 
     if (state) {
       bucketizer.importState(state);
     } else {
-      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath);
+      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath!);
     }
 
     return bucketizer;

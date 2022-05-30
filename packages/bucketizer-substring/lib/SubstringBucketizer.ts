@@ -1,33 +1,26 @@
 import type * as RDF from '@rdfjs/types';
-import type { BucketizerOptions, RelationParameters } from '@treecg/types';
-import { Bucketizer, RelationType } from '@treecg/types';
+import type { RelationParameters } from '@treecg/types';
+import { RelationType } from '@treecg/types';
+import { BucketizerCoreExt, BucketizerCoreExtOptions, Partial } from '../../bucketizer-basic/node_modules/@treecg/bucketizer-core';
 
-export class SubstringBucketizer extends Bucketizer {
+export type SubstringInputType = Partial<BucketizerCoreExtOptions>;
+export class SubstringBucketizer extends BucketizerCoreExt<{}> {
   public bucketCounterMap: Map<string, number>;
 
-  private constructor(bucketizerOptions: BucketizerOptions) {
+  private constructor(bucketizerOptions: SubstringInputType) {
     super(bucketizerOptions);
 
     this.bucketCounterMap = new Map<string, number>();
-    this.bucketCounterMap.set(this.bucketizerOptions.root!, 0);
+    this.bucketCounterMap.set(this.options.root, 0);
   }
 
-  public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<SubstringBucketizer> {
-    if (!bucketizerOptions.propertyPath) {
-      throw new Error(`[SubstringBucketizer]: Please provide a valid property path.`);
-    }
-
+  public static async build(bucketizerOptions: SubstringInputType, state?: any): Promise<SubstringBucketizer> {
     const bucketizer = new SubstringBucketizer(bucketizerOptions);
-
-    if (!bucketizerOptions.pageSize) {
-      bucketizer.logger.warn(`No page size was configured. Page size is set to default value = 50`);
-      bucketizer.bucketizerOptions.pageSize = 50;
-    }
 
     if (state) {
       bucketizer.importState(state);
     } else {
-      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath);
+      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath!);
     }
 
     return bucketizer;
@@ -39,7 +32,7 @@ export class SubstringBucketizer extends Bucketizer {
       const normalizedLiteral = this.normalize(propertyPathObject.value);
 
       const parts = normalizedLiteral.split(' ');
-      let currentBucket = this.bucketizerOptions.root!;
+      let currentBucket = this.options.root;
       let substring = '';
       let bucketFound = false;
 
@@ -59,11 +52,12 @@ export class SubstringBucketizer extends Bucketizer {
               // eslint-disable-next-line @typescript-eslint/no-loop-func
               !hypermediaControls.some(relationParametersObject => relationParametersObject.nodeId === substring)) {
               const relationParameters = this.createRelationParameters(substring, substring.split('+'));
-              const updatedControls = hypermediaControls === undefined ?
-                [relationParameters] :
-                [...hypermediaControls, relationParameters];
+              if (hypermediaControls === undefined) {
+                this.addHypermediaControls(currentBucket, relationParameters);
+              } else {
+                this.addHypermediaControls(currentBucket, ...hypermediaControls, relationParameters);
+              }
 
-              this.addHypermediaControls(currentBucket, updatedControls);
               currentBucket = substring;
 
               this.updateCounter(currentBucket);
@@ -125,7 +119,7 @@ export class SubstringBucketizer extends Bucketizer {
       .toLowerCase();
 
   private readonly hasRoom = (bucket: string): boolean =>
-    !this.bucketCounterMap.has(bucket) || this.bucketCounterMap.get(bucket)! < this.bucketizerOptions.pageSize!;
+    !this.bucketCounterMap.has(bucket) || this.bucketCounterMap.get(bucket)! < this.options.pageSize;
 
   private readonly updateCounter = (bucket: string): void => {
     // A member who has multiple objects for the property path (e.g. language tags)

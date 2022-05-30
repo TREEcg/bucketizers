@@ -1,52 +1,42 @@
 import type * as RDF from '@rdfjs/types';
-import type { BucketizerOptions, RelationParameters } from '@treecg/types';
-import { Bucketizer, RelationType } from '@treecg/types';
+import type { Partial } from "@treecg/bucketizer-core";
+import { BucketizerCore, BucketizerCoreOptions } from '@treecg/bucketizer-core';
+import type { RelationParameters } from '@treecg/types';
+import { RelationType } from '@treecg/types';
 
-export class BasicBucketizer extends Bucketizer {
+export type BasicInputType = Partial<BucketizerCoreOptions>;
+export class BasicBucketizer extends BucketizerCore<{}> {
   public pageNumber: number;
   public memberCounter: number;
 
-  private constructor(bucketizerOptions: BucketizerOptions) {
-    super(bucketizerOptions);
+  private constructor(bucketizerOptions: BasicInputType, state?: any) {
+    super(bucketizerOptions)
 
     this.pageNumber = 0;
     this.memberCounter = 0;
-  }
-
-  public static async build(bucketizerOptions: BucketizerOptions, state?: any): Promise<BasicBucketizer> {
-    const bucketizer = new BasicBucketizer(bucketizerOptions);
-
-    if (!bucketizerOptions.pageSize) {
-      bucketizer.logger.warn(`No page size provided. Page size is set to default value = 50`);
-      bucketizerOptions.pageSize = 50;
-    }
 
     if (state) {
-      bucketizer.importState(state);
+      this.importState(state);
     }
+  }
 
-    return bucketizer;
+  public static build(options: BasicInputType, state?: any): BasicBucketizer {
+    return new BasicBucketizer(options, state);
   }
 
   public bucketize = (quads: RDF.Quad[], memberId: string): void => {
-    const pageSize = this.bucketizerOptions.pageSize!;
-
-    if (this.memberCounter >= pageSize) {
+    if (this.memberCounter >= this.options.pageSize) {
       const currentPage = this.pageNumber;
       this.increasePageNumber();
       this.resetMemberCounter();
 
-      this.addHypermediaControls(`${currentPage}`, [this.createRelationParameters(this.pageNumber)]);
+      this.addHypermediaControls(`${currentPage}`, this.createRelationParameters(this.pageNumber));
     }
 
     const bucketTriple = this.createBucketTriple(`${this.pageNumber}`, memberId);
     quads.push(bucketTriple);
 
     this.increaseMemberCounter();
-  };
-
-  protected createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
-    throw new Error(`[BasicBucketizer]: Method not implemented`);
   };
 
   public exportState = (): any => {

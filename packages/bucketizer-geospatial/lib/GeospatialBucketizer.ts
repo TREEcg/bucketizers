@@ -1,6 +1,7 @@
 import type * as RDF from '@rdfjs/types';
-import type { BucketizerOptions, RelationParameters } from '@treecg/types';
-import { Bucketizer, RelationType } from '@treecg/types';
+import type { RelationParameters } from '@treecg/types';
+import { RelationType } from '@treecg/types';
+import { BucketizerCoreExt, BucketizerCoreExtOptions, Partial } from '../../bucketizer-basic/node_modules/@treecg/bucketizer-core';
 import { SlippyMaps } from './utils/SlippyMaps';
 
 export interface ITileMetadata {
@@ -8,44 +9,34 @@ export interface ITileMetadata {
   memberCounter: number;
 }
 
-export class GeospatialBucketizer extends Bucketizer {
-  private readonly propertyPath: string;
+export type GeospatialInputType = Partial<BucketizerCoreExtOptions, {"zoom": number}>;
+export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> {
   private zoomLevel: number;
   private readonly slippyMaps: SlippyMaps;
 
   // Store current page number and numbers of members for each tile (x/y)
   private tileMetadataMap: Map<string, ITileMetadata>;
 
-  private constructor(bucketizerOptions: BucketizerOptions, zoomLevel: number) {
+  private constructor(bucketizerOptions: GeospatialInputType) {
     super(bucketizerOptions);
 
-    this.zoomLevel = zoomLevel;
-    this.slippyMaps = new SlippyMaps(zoomLevel);
+    this.zoomLevel = bucketizerOptions.zoom;
+    this.slippyMaps = new SlippyMaps(bucketizerOptions.zoom);
     this.tileMetadataMap = new Map();
 
-    this.addHypermediaControls(this.bucketizerOptions.root!, []);
+    this.addHypermediaControls(this.options.root);
   }
 
   public static async build(
-    bucketizerOptions: BucketizerOptions,
-    zoomLevel: number,
+    bucketizerOptions: GeospatialInputType,
     state?: any,
   ): Promise<GeospatialBucketizer> {
-    if (!bucketizerOptions.propertyPath) {
-      throw new Error(`[GeospatialBucketizer]: Please provide a valid property path.`);
-    }
-
-    const bucketizer = new GeospatialBucketizer(bucketizerOptions, zoomLevel);
-
-    if (!bucketizerOptions.pageSize) {
-      bucketizer.logger.warn(`Page size was not configured and will be set to default value = 50`);
-      bucketizer.bucketizerOptions.pageSize = 50;
-    }
+    const bucketizer = new GeospatialBucketizer(bucketizerOptions);
 
     if (state) {
       bucketizer.importState(state);
     } else {
-      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath);
+      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath!);
     }
 
     return bucketizer;
@@ -61,7 +52,7 @@ export class GeospatialBucketizer extends Bucketizer {
         values.forEach(y => {
           const leafNodePath = `${this.zoomLevel}/${x}/${y}`;
           const columnPath = `${this.zoomLevel}/${x}`;
-          const pageSize = this.bucketizerOptions.pageSize!;
+          const pageSize = this.options.pageSize;
           const wktString = this.slippyMaps.getTileBoundingBoxWktString(x, y, this.zoomLevel);
 
           let metadata: ITileMetadata;
@@ -75,7 +66,7 @@ export class GeospatialBucketizer extends Bucketizer {
             metadata = this.createTileMetadata(leafNodePath, columnPath, wktString);
 
             // Update hypermedia controls for root (extend polygon with bounding box of new tile)
-            const rootHypermediaControls = this.getHypermediaControls(this.bucketizerOptions.root!)!;
+            const rootHypermediaControls = this.getHypermediaControls(this.options.root)!;
             const columnRelationParameters =
               rootHypermediaControls.find(parameterObject => parameterObject.nodeId === columnPath);
 
@@ -91,8 +82,8 @@ export class GeospatialBucketizer extends Bucketizer {
               ];
             } else {
               this.addHypermediaControls(
-                this.bucketizerOptions.root!,
-                [...rootHypermediaControls, this.createRelationParameters(columnPath, wktString)],
+                this.options.root,
+                ...rootHypermediaControls, this.createRelationParameters(columnPath, wktString),
               );
             }
           }
@@ -170,9 +161,8 @@ export class GeospatialBucketizer extends Bucketizer {
     }
 
     this.addHypermediaControls(columnPath,
-      [
-        ...columnHypermediaControls,
-        this.createRelationParameters(paginatedTilePath, wktString),
-      ]);
+      ...columnHypermediaControls,
+      this.createRelationParameters(paginatedTilePath, wktString),
+    );
   };
 }
