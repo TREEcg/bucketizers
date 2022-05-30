@@ -23,6 +23,7 @@
     "@rdfjs/types": "^1.0.1",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",
+    "@types/jest": "^27.5.1",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.11.1",
     "chai": "^4.3.4",

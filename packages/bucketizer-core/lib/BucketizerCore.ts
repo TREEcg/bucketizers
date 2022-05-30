@@ -1,9 +1,6 @@
-import dataset from '@rdfjs/dataset';
 import type * as RDF from '@rdfjs/types';
 import { Quad } from '@rdfjs/types';
 import { getLogger, Logger, RelationParameters, RelationType } from '@treecg/types';
-import * as clownface from "clownface";
-import { findNodes } from "clownface-shacl-path";
 import * as N3 from 'n3';
 import { DataFactory } from 'rdf-data-factory';
 
@@ -24,14 +21,14 @@ export interface BucketizerCoreOptions {
 export abstract class BucketizerCore<Options> implements Bucketizer {
     protected readonly factory: RDF.DataFactory = new DataFactory();
     private bucketHypermediaControlsMap: Map<string, RelationParameters[]>;
-    protected options: BucketizerCoreOptions & Options;
+    public options: BucketizerCoreOptions & Options;
     public logger: Logger;
 
     constructor(options: Partial<BucketizerCoreOptions, Options>) {
         this.bucketHypermediaControlsMap = new Map();
         this.logger = getLogger("bucketizer");
 
-        options.bucketProperty = options.bucketProperty || "http://w3id.org/ldes#bucket";
+        options.bucketProperty = options.bucketProperty || "https://w3id.org/ldes#bucket";
         if (!options.pageSize) {
             this.logger.warn(`No page size provided. Page size is set to default value = 50`);
             options.pageSize = 50;
@@ -43,11 +40,11 @@ export abstract class BucketizerCore<Options> implements Bucketizer {
 
     abstract bucketize(quads: RDF.Quad[], memberId: string): void;
 
-    protected getBucketHypermediaControlsMap(): Map<string, RelationParameters[]> {
+    public getBucketHypermediaControlsMap(): Map<string, RelationParameters[]> {
         return this.bucketHypermediaControlsMap;
     }
 
-    protected getHypermediaControls(bucket: string, create = false): RelationParameters[] | undefined {
+    public getHypermediaControls(bucket: string, create = false): RelationParameters[] | undefined {
         const out = this.bucketHypermediaControlsMap.get(bucket);
         if (create && out === undefined) {
             const newOut: RelationParameters[] = [];
@@ -97,34 +94,40 @@ function extSetDefaults<T>(options: Partial<BucketizerCoreExtOptions, T>): Bucke
     return <BucketizerCoreExtOptions & T>options;
 }
 
+let id = 0;
 export abstract class BucketizerCoreExt<Options> extends BucketizerCore<BucketizerCoreExtOptions & Options> {
-    public propertyPathQuads: RDF.Quad[];
+    public propertyPathPredicates: RDF.Term[];
     private bucketlessPageNumber: number;
     private bucketlessPageMemberCounter: number;
 
     public constructor(bucketizerOptions: Partial<BucketizerCoreExtOptions, Options>) {
         super(extSetDefaults(bucketizerOptions));
-        this.propertyPathQuads = [];
+        this.propertyPathPredicates = [];
         this.bucketlessPageNumber = 0;
         this.bucketlessPageMemberCounter = 0;
     }
 
-    public setPropertyPathQuads = (propertyPath: string): Promise<void> => new Promise((resolve, reject) => {
+    public setPropertyPathQuads(propertyPath: string): void {
         const fullPath = `_:b0 <https://w3id.org/tree#path> ${propertyPath} .`;
+        const quads = new N3.Parser().parse(fullPath);
 
-        const parser = new N3.Parser();
-        parser.parse(fullPath, (error: any, quad: any, prefixes: any) => {
-            if (error) {
-                reject(error.stack);
-            }
+        let source = quads.find(quad => quad.predicate.value === "https://w3id.org/tree#path")!.object;
 
-            if (quad) {
-                this.propertyPathQuads.push(quad);
-            } else {
-                resolve();
+        const hasNext = quads.find(quad => quad.subject.equals(source));
+
+        if (hasNext) {
+            while (source.value !== "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil") {
+                const listNodes = quads.filter(quad => quad.subject.equals(source));
+
+                source = listNodes.find(quad => quad.predicate.value === "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest")!.object;
+                const item = listNodes.find(quad => quad.predicate.value === "http://www.w3.org/1999/02/22-rdf-syntax-ns#first")!.object;
+
+                this.propertyPathPredicates.push(item);
             }
-        });
-    });
+        } else {
+            this.propertyPathPredicates.push(source);
+        }
+    }
 
     /**
      * Adds extra triples to the array of quads indicating
@@ -168,18 +171,23 @@ export abstract class BucketizerCoreExt<Options> extends BucketizerCore<Bucketiz
      * @param memberId identifier of the member
      * @returns an RDF Term
      */
-    protected extractPropertyPathObject = (memberQuads: RDF.Quad[], memberId: string): RDF.Term[] => {
-        const entryBlankNode = this.getEntryBlanknode().object;
-        
-        const data = clownface({ dataset: dataset.dataset(memberQuads) }).namedNode(memberId);
-        const path = clownface({ dataset: dataset.dataset(this.propertyPathQuads) }).blankNode(<any>entryBlankNode);
-        return findNodes(data, path).terms;
+    protected extractPropertyPathObject = (memberQuads: RDF.Quad[], memberId: string | RDF.Term, properties = this.propertyPathPredicates): RDF.Term[] => {
+        const memberTerm = typeof memberId === "string" ? this.factory.namedNode(memberId) : memberId;
+
+        if (properties.length === 0) {
+            return [memberTerm];
+        }
+
+        const head = properties[0];
+        return memberQuads
+            .filter(quad => quad.subject.equals(memberTerm))
+            .filter(quad => quad.predicate.equals(head))
+            .flatMap(member => this.extractPropertyPathObject(memberQuads, member.object, properties.slice(1)))
     };
 
-    private readonly getEntryBlanknode = (): RDF.Quad =>
-        this.propertyPathQuads.find(quad => quad.predicate.value === 'https://w3id.org/tree#path')!;
-
-    public getPropertyPathQuads = (): RDF.Quad[] => this.propertyPathQuads;
+    public getPropertyPathPredicates(): RDF.Term[] {
+        return this.propertyPathPredicates;
+    }
 
     public getBucketProperty(): string {
         return this.options.bucketProperty || "";
@@ -192,7 +200,7 @@ export abstract class BucketizerCoreExt<Options> extends BucketizerCore<Bucketiz
     public exportState(): any {
         const state = super.exportState();
         return Object.assign(state, {
-            propertyPathQuads: this.propertyPathQuads,
+            propertyPathPredicates: this.propertyPathPredicates,
             bucketizerOptions: this.options,
             bucketlessPageNumber: this.bucketlessPageNumber,
             bucketlessPageMemberCounter: this.bucketlessPageMemberCounter
@@ -201,7 +209,7 @@ export abstract class BucketizerCoreExt<Options> extends BucketizerCore<Bucketiz
 
     public importState(state: any): void {
         super.importState(state)
-        this.propertyPathQuads = state.propertyPathQuads;
+        this.propertyPathPredicates = state.propertyPathPredicates;
         this.bucketlessPageNumber = state.bucketlessPageNumber;
         this.bucketlessPageMemberCounter = state.bucketlessPageMemberCounter;
     }

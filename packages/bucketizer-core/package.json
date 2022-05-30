@@ -27,12 +27,8 @@
     "url": "https://github.com/TREEcg/bucketizers/issues"
   },
   "dependencies": {
-    "@rdfjs/dataset": "^2.0.1",
     "@treecg/types": "0.2.5",
-    "@types/clownface": "^1.5.0",
     "@types/n3": "^1.10.4",
-    "clownface": "^1.4.0",
-    "clownface-shacl-path": "^1.2.2",
     "n3": "^1.16.2",
     "rdf-data-factory": "^1.1.0"
   },

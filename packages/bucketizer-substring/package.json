@@ -19,6 +19,9 @@
     "lib/**/*.js",
     "lib/**/*.d.ts"
   ],
+  "scripts": {
+    "test": "jest"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TREEcg/bucketizers.git"
@@ -27,7 +30,15 @@
     "url": "https://github.com/TREEcg/bucketizers/issues"
   },
   "dependencies": {
+    "@treecg/bucketizer-core": "^1.0.0",
     "@treecg/types": "0.0.21",
     "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.18.2",
+    "@types/jest": "^27.5.1",
+    "babel-jest": "^28.1.0",
+    "jest": "^28.1.0",
+    "ts-jest": "^28.0.3"
   }
 }

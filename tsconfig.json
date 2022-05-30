@@ -1,8 +1,15 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
+    "types": [
+      "jest",
+    ],
     "module": "commonjs",
-    "lib": ["es6", "es2019", "esnext.asynciterable"],
+    "lib": [
+      "es6",
+      "es2019",
+      "esnext.asynciterable"
+    ],
     "target": "es2017",
     "preserveConstEnums": true,
     "downlevelIteration": true,
@@ -20,5 +27,8 @@
     "packages/*/bin/**/*",
     "packages/*/lib/**/*",
   ],
-  "exclude": ["**/node_modules", "**/__tests__/*"]
+  "exclude": [
+    "**/node_modules",
+    "**/__tests__/*"
+  ]
 }
