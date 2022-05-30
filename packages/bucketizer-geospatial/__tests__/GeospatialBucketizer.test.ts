@@ -1,17 +1,11 @@
 import type * as RDF from '@rdfjs/types';
-import type { BucketizerOptions } from '@treecg/types';
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
 import { DataFactory } from 'rdf-data-factory';
-import { GeospatialBucketizer } from '../lib/GeospatialBucketizer';
+import { GeospatialBucketizer, GeospatialInputType } from '../lib/GeospatialBucketizer';
 import { SlippyMaps } from '../lib/utils/SlippyMaps';
-
-chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 describe('geospatial-bucketizer', () => {
   let member: RDF.Quad[];
-  let bucketizerOptions: BucketizerOptions;
+  let bucketizerOptions: GeospatialInputType;
   const zoomLevel = 4;
 
   const factory: RDF.DataFactory = new DataFactory();
@@ -34,27 +28,28 @@ describe('geospatial-bucketizer', () => {
     bucketizerOptions = {
       propertyPath: '<http://www.w3.org/ns/dcat#bbox>',
       pageSize: 50,
+      zoom: zoomLevel
     };
 
-    bucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
-    bucketizer.logger.silent = true;
+    bucketizer = await GeospatialBucketizer.build(bucketizerOptions);
   });
 
   it('should be a function', async () => {
-    expect(GeospatialBucketizer).to.be.instanceOf(Function);
+    expect(GeospatialBucketizer).toBeInstanceOf(Function);
   });
 
   it('should be a constructor', async () => {
-    expect(bucketizer).to.be.instanceOf(GeospatialBucketizer);
+    expect(bucketizer).toBeInstanceOf(GeospatialBucketizer);
   });
 
   it('should set page size to the default value when not configured', async () => {
     bucketizerOptions = {
       propertyPath: '<http://www.w3.org/ns/dcat#bbox>',
+      zoom: zoomLevel
     };
 
-    const geospatialBucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
-    expect(geospatialBucketizer.bucketizerOptions.pageSize).to.equal(50);
+    const geospatialBucketizer = await GeospatialBucketizer.build(bucketizerOptions);
+    expect(geospatialBucketizer.options.pageSize).toEqual(50);
   });
 
   it('should apply the fallback function when property path is not found', async () => {
@@ -72,7 +67,7 @@ describe('geospatial-bucketizer', () => {
     bucketizer.bucketize(memberWithoutPropertyPath, 'http://example.org/id/2');
 
     const bucketTriple: RDF.Quad = memberWithoutPropertyPath.find(quad => quad.predicate.equals(bucketNode))!;
-    expect(bucketTriple.object.value).to.equal('bucketless-0');
+    expect(bucketTriple.object.value).toEqual('bucketless-0');
   });
 
   it('should add one or more bucket triples to a member', async () => {
@@ -91,44 +86,51 @@ describe('geospatial-bucketizer', () => {
     bucketizer.bucketize(member, 'http://example.org/id/1');
     const predicates = member.filter(quad => quad.predicate.equals(bucketNode));
 
-    expect(predicates.length).to.be.greaterThan(0);
+    expect(predicates.length).toBeGreaterThan(0);
   });
 
   it('should throw an error when property path option is not set', async () => {
-    await expect(GeospatialBucketizer.build({}, zoomLevel)).to.be.rejectedWith(Error);
+    let ok, err;
+    try {
+      ok = await GeospatialBucketizer.build({ zoom: zoomLevel });
+    } catch (e) {
+      err = e;
+    }
+    expect(ok).toBeUndefined();
+    expect(err).toEqual("expected propertyPath in options but found undefined");
   });
 
   it('should be able to export its current state', async () => {
     const currentState = bucketizer.exportState();
 
-    expect(currentState).to.haveOwnProperty('hypermediaControls');
-    expect(currentState).to.haveOwnProperty('zoomLevel');
-    expect(currentState).to.haveOwnProperty('tileMetadataMap');
-    expect(currentState).to.haveOwnProperty('propertyPathQuads');
-    expect(currentState).to.haveOwnProperty('bucketizerOptions');
-    expect(currentState).to.haveOwnProperty('bucketlessPageNumber');
-    expect(currentState).to.haveOwnProperty('bucketlessPageMemberCounter');
+    expect(currentState).toHaveProperty('hypermediaControls');
+    expect(currentState).toHaveProperty('zoomLevel');
+    expect(currentState).toHaveProperty('tileMetadataMap');
+    expect(currentState).toHaveProperty('propertyPathPredicates');
+    expect(currentState).toHaveProperty('bucketizerOptions');
+    expect(currentState).toHaveProperty('bucketlessPageNumber');
+    expect(currentState).toHaveProperty('bucketlessPageMemberCounter');
   });
 
   it('should be able to import a previous state', async () => {
     const state: any = {
       hypermediaControls: [],
-      propertyPathQuads: [],
+      propertyPathPredicates: [],
       zoomLevel: 10,
       tileMetadataMap: [[0, [1]]],
       bucketlessPageNumber: 0,
       bucketlessPageMemberCounter: 0,
     };
 
-    const bucketizerWithState = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel, state);
+    const bucketizerWithState = await GeospatialBucketizer.build(bucketizerOptions, state);
     const currentState = bucketizerWithState.exportState();
 
-    expect(currentState.zoomLevel).to.equal(state.zoomLevel);
-    expect(currentState.tileColumnMap).to.eql(state.tileColumnMap);
-    expect(currentState.bucketlessPageNumber).to.equal(state.bucketlessPageNumber);
-    expect(currentState.bucketlessPageMemberCounter).to.eql(state.bucketlessPageMemberCounter);
-    expect(bucketizerWithState.getPropertyPathQuads()).to.eql(state.propertyPathQuads);
-    expect(bucketizerWithState.getBucketHypermediaControlsMap()).to.eql(new Map(state.hypermediaControls));
+    expect(currentState.zoomLevel).toEqual(state.zoomLevel);
+    expect(currentState.tileColumnMap).toEqual(state.tileColumnMap);
+    expect(currentState.bucketlessPageNumber).toEqual(state.bucketlessPageNumber);
+    expect(currentState.bucketlessPageMemberCounter).toEqual(state.bucketlessPageMemberCounter);
+    expect(bucketizerWithState.getPropertyPathPredicates()).toEqual(state.propertyPathPredicates);
+    expect(bucketizerWithState.getBucketHypermediaControlsMap()).toEqual(new Map(state.hypermediaControls));
   });
 
   it('should apply fallback function when geo literal type is not supported', async () => {
@@ -148,7 +150,7 @@ describe('geospatial-bucketizer', () => {
     bucketizer.bucketize(memberWithoutSupportedGeoType, 'http://example.org/id/2');
 
     const bucketTriple: RDF.Quad = memberWithoutSupportedGeoType.find(quad => quad.predicate.equals(bucketNode))!;
-    expect(bucketTriple.object.value).to.equal('bucketless-0');
+    expect(bucketTriple.object.value).toEqual('bucketless-0');
   });
 
   it('should be able to handle WKT literals with their coordinate system present in the string', async () => {
@@ -159,7 +161,7 @@ describe('geospatial-bucketizer', () => {
     );
 
     const slippyMaps = new SlippyMaps(4);
-    expect(() => slippyMaps.calculateTiles(literal)).to.not.throw(Error);
+    expect(() => slippyMaps.calculateTiles(literal)).not.toThrow(Error);
   });
 
   it('should add members to the same tile file when page size is not reached', async () => {
@@ -187,13 +189,14 @@ describe('geospatial-bucketizer', () => {
     const member1Bucket = member1.find(quad => quad.predicate.equals(bucketNode))!;
     const member2Bucket = member2.find(quad => quad.predicate.equals(bucketNode))!;
 
-    expect(member1Bucket.object.value).to.equal(member2Bucket.object.value);
+    expect(member1Bucket.object.value).toEqual(member2Bucket.object.value);
   });
 
   it('should update tile metadata when page limit is reached', async () => {
     bucketizerOptions = {
       propertyPath: '<http://www.w3.org/ns/dcat#bbox>',
       pageSize: 1,
+      zoom: zoomLevel,
     };
 
     // Tile X: 8, Y: 5
@@ -216,15 +219,14 @@ describe('geospatial-bucketizer', () => {
       ),
     ];
 
-    const geospatialBucketizer = await GeospatialBucketizer.build(bucketizerOptions, zoomLevel);
-    geospatialBucketizer.logger.silent = true;
+    const geospatialBucketizer = await GeospatialBucketizer.build(bucketizerOptions);
     geospatialBucketizer.bucketize(member1, 'http://example.org/id/5');
     geospatialBucketizer.bucketize(member2, 'http://example.org/id/6');
 
     const member1Bucket = member1.find(quad => quad.predicate.equals(bucketNode))!;
     const member2Bucket = member2.find(quad => quad.predicate.equals(bucketNode))!;
 
-    expect(member1Bucket.object.value).to.equal('4/8/5-0');
-    expect(member2Bucket.object.value).to.equal('4/8/5-1');
+    expect(member1Bucket.object.value).toEqual('4/8/5-0');
+    expect(member2Bucket.object.value).toEqual('4/8/5-1');
   });
 });

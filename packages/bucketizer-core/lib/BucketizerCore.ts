@@ -56,7 +56,7 @@ export abstract class BucketizerCore<Options> implements Bucketizer {
 
     protected addHypermediaControls(bucket: string, ...controls: RelationParameters[]): void {
         if (this.bucketHypermediaControlsMap.get(bucket) != undefined) {
-            this.logger.error("overriding hypermediacontrols for bucket " + bucket);
+            // this.logger.warn("overriding hypermediacontrols for bucket " + bucket);
         }
         this.bucketHypermediaControlsMap.set(bucket, controls);
     };
@@ -81,7 +81,7 @@ export abstract class BucketizerCore<Options> implements Bucketizer {
     };
 }
 
-export interface BucketizerCoreExtOptions {
+export interface BucketizerCoreExtOptions extends BucketizerCoreOptions {
     root: string;
     propertyPath: string;
 }
@@ -94,7 +94,6 @@ function extSetDefaults<T>(options: Partial<BucketizerCoreExtOptions, T>): Bucke
     return <BucketizerCoreExtOptions & T>options;
 }
 
-let id = 0;
 export abstract class BucketizerCoreExt<Options> extends BucketizerCore<BucketizerCoreExtOptions & Options> {
     public propertyPathPredicates: RDF.Term[];
     private bucketlessPageNumber: number;
@@ -163,7 +162,7 @@ export abstract class BucketizerCoreExt<Options> extends BucketizerCore<Bucketiz
     /**
      * Selects the bucket for the LDES member based on the value of the property path object
      */
-    protected abstract createBuckets: (propertyPathObject: RDF.Term[]) => string[];
+    protected abstract createBuckets(propertyPathObject: RDF.Term[]): string[];
 
     /**
      * Returns the RDF Term that matches the property path and will be used to create a bucket triple
