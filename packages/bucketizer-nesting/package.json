@@ -1,8 +1,8 @@
 {
-  "name": "@treecg/substring-bucketizer",
+  "name": "@treecg/bucketizer-nesting",
   "version": "2.0.0-alpha.0",
-  "description": "Applies a substring fragmentation to LDES members",
-  "author": "Dwight Van Lancker <dwight.vanlancker@hotmail.com>",
+  "description": "Applies other bucketizers in a nested fasion.",
+  "author": "Arthur Vercruysse <arthur.vercruysse@ugent.be>",
   "homepage": "https://github.com/TREEcg/bucketizers#readme",
   "license": "MIT",
   "main": "index.js",
@@ -19,9 +19,6 @@
     "lib/**/*.js",
     "lib/**/*.d.ts"
   ],
-  "scripts": {
-    "test": "jest"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TREEcg/bucketizers.git"
@@ -30,8 +27,10 @@
     "url": "https://github.com/TREEcg/bucketizers/issues"
   },
   "dependencies": {
-    "@treecg/bucketizer-core": "^1.0.0",
-    "@treecg/types": "0.0.21",
-    "winston": "^3.3.3"
+    "@treecg/basic-bucketizer": "^2.0.0-alpha.0",
+    "@treecg/geospatial-bucketizer": "^2.0.0-alpha.0",
+    "@treecg/subject-page-bucketizer": "^2.0.0-alpha.0",
+    "@treecg/substring-bucketizer": "^2.0.0-alpha.0",
+    "@treecg/types": "0.2.5"
   }
 }
