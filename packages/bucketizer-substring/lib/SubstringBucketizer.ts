@@ -14,13 +14,11 @@ export class SubstringBucketizer extends BucketizerCoreExt<{}> {
     this.bucketCounterMap.set(this.options.root, 0);
   }
 
-  public static async build(bucketizerOptions: SubstringInputType, state?: any): Promise<SubstringBucketizer> {
+  public static build(bucketizerOptions: SubstringInputType, state?: any): SubstringBucketizer {
     const bucketizer = new SubstringBucketizer(bucketizerOptions);
 
     if (state) {
       bucketizer.importState(state);
-    } else {
-      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath!);
     }
 
     return bucketizer;

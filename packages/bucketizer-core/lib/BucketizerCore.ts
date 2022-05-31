@@ -83,7 +83,7 @@ export abstract class BucketizerCore<Options> implements Bucketizer {
 
 export interface BucketizerCoreExtOptions extends BucketizerCoreOptions {
     root: string;
-    propertyPath: string;
+    propertyPath: string | Quad[];
 }
 
 function extSetDefaults<T>(options: Partial<BucketizerCoreExtOptions, T>): BucketizerCoreExtOptions & T {
@@ -104,11 +104,18 @@ export abstract class BucketizerCoreExt<Options> extends BucketizerCore<Bucketiz
         this.propertyPathPredicates = [];
         this.bucketlessPageNumber = 0;
         this.bucketlessPageMemberCounter = 0;
+
+        this.setPropertyPathQuads(this.options.propertyPath);
     }
 
-    public setPropertyPathQuads(propertyPath: string): void {
-        const fullPath = `_:b0 <https://w3id.org/tree#path> ${propertyPath} .`;
-        const quads = new N3.Parser().parse(fullPath);
+    private setPropertyPathQuads(propertyPath: string | Quad[]): void {
+        let quads;
+        if(propertyPath instanceof Array) {
+            quads = propertyPath
+        } else {
+            const fullPath = `_:b0 <https://w3id.org/tree#path> ${propertyPath} .`;
+            quads = new N3.Parser().parse(fullPath);
+        }
 
         let source = quads.find(quad => quad.predicate.value === "https://w3id.org/tree#path")!.object;
 

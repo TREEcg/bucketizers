@@ -19,9 +19,7 @@ class FooBar extends BucketizerCoreExt<Input> {
 describe("core-tests", () => {
     test("can parse simple property path", () => {
         let item;
-        const bucketizer = new FooBar({ propertyPath: "http://example.org/ns#x" }, (x) => { item = x; })
-
-        bucketizer.setPropertyPathQuads("<http://example.org/ns#x>");
+        const bucketizer = new FooBar({ propertyPath: "<http://example.org/ns#x>" }, (x) => { item = x; })
 
         expect(bucketizer.getPropertyPathPredicates()).toEqual([factory.namedNode("http://example.org/ns#x")]);
 
@@ -41,9 +39,7 @@ describe("core-tests", () => {
 
     test("can parse property path", () => {
         let item;
-        const bucketizer = new FooBar({ propertyPath: "http://example.org/ns#x" }, (x) => { item = x; })
-
-        bucketizer.setPropertyPathQuads("(<http://example.org/ns#x> <http://example.org/ns#y>)");
+        const bucketizer = new FooBar({ propertyPath: "(<http://example.org/ns#x> <http://example.org/ns#y>)" }, (x) => { item = x; })
 
         expect(bucketizer.getPropertyPathPredicates()).toEqual([factory.namedNode("http://example.org/ns#x"), factory.namedNode("http://example.org/ns#y")]);
 

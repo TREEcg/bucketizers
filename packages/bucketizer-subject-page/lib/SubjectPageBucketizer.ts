@@ -3,17 +3,11 @@ import { BucketizerCoreExt, BucketizerCoreExtOptions } from '../../bucketizer-ba
 
 export type SubjectInputType = Partial<BucketizerCoreExtOptions>;
 export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
-  private constructor(bucketizerOptions: SubjectInputType) {
-    super(bucketizerOptions);
-  }
-
-  public static async build(bucketizerOptions: SubjectInputType, state?: any): Promise<SubjectPageBucketizer> {
+  public static build(bucketizerOptions: SubjectInputType, state?: any): SubjectPageBucketizer {
     const bucketizer = new SubjectPageBucketizer(bucketizerOptions);
 
     if (state) {
       bucketizer.importState(state);
-    } else {
-      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath!);
     }
 
     return bucketizer;

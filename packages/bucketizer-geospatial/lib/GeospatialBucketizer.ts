@@ -9,7 +9,7 @@ export interface ITileMetadata {
   memberCounter: number;
 }
 
-export type GeospatialInputType = Partial<BucketizerCoreExtOptions, {"zoom": number}>;
+export type GeospatialInputType = Partial<BucketizerCoreExtOptions, { "zoom": number }>;
 export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> {
   private zoomLevel: number;
   private readonly slippyMaps: SlippyMaps;
@@ -27,18 +27,14 @@ export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> 
     this.addHypermediaControls(this.options.root);
   }
 
-  public static async build(
+  public static build(
     bucketizerOptions: GeospatialInputType,
     state?: any,
-  ): Promise<GeospatialBucketizer> {
+  ): GeospatialBucketizer {
     const bucketizer = new GeospatialBucketizer(bucketizerOptions);
-
     if (state) {
       bucketizer.importState(state);
-    } else {
-      await bucketizer.setPropertyPathQuads(bucketizerOptions.propertyPath!);
     }
-
     return bucketizer;
   }
 
