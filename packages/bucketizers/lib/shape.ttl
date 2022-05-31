@@ -1,0 +1,89 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <http://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix ldes: <https://w3id.org/ldes#> .
+@prefix tree: <https://w3id.org/tree#> .
+
+schema:BucketizationShape
+  a sh:NodeShape;
+  sh:targetClass ldes:Bucketization;
+  sh:property [
+      sh:path ldes:bucketType ;
+      sh:pattern "basic|geospatial|substring|subject";
+      sh:description "Kind of bucketizer";
+      sh:minCount 1 ;
+      sh:maxCount 1 ;
+  ],
+  [
+    sh:path ldes:pageSize ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer;
+  ],
+  [
+    sh:path ldes:bucketProperty ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:IRI ;
+  ];
+  sh:or (
+    schema:BasicBucketization
+    schema:BucketizationCoreExt
+  ).
+
+
+schema:BasicBucketization
+  sh:property [
+    sh:path ldes:bucketType ;
+    sh:hasValue "basic";
+  ] .
+
+
+schema:BucketizationCoreExt
+  sh:or (
+    [
+      sh:property [
+        sh:path tree:path ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRI;
+      ];
+    ]
+    [
+      sh:property [
+        sh:path tree:path ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string;
+      ];
+    ]
+  );
+  sh:or (
+    schema:GeoBucketization
+    schema:SubstringBucketization
+    schema:SubjectBucketization
+  ).
+
+schema:SubstringBucketization
+  sh:property [
+    sh:path ldes:bucketType ;
+    sh:hasValue "substring";
+  ].
+
+schema:SubjectBucketization
+  sh:property [
+    sh:path ldes:bucketType ;
+    sh:hasValue "subject";
+  ].
+
+schema:GeoBucketization
+  sh:property [
+    sh:path ldes:bucketType ;
+    sh:hasValue "geospatial";
+  ], [
+    sh:path ldes:zoomLevel ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:integer ;
+  ] .

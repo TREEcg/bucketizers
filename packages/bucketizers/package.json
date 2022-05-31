@@ -12,6 +12,7 @@
   "files": [
     "index.d.ts",
     "index.js",
+    "lib/shape.ttl",
     "lib/**/*.js",
     "lib/**/*.d.ts"
   ],
@@ -32,6 +33,12 @@
     "@treecg/subject-page-bucketizer": "^1.5.3-alpha.0",
     "@treecg/substring-bucketizer": "^1.5.3-alpha.0",
     "@treecg/types": "0.0.21",
+    "rdf-validate-shacl": "^0.4.4",
+    "n3": "^1.16.2",
     "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "@types/n3": "^1.10.4",
+    "@types/rdf-validate-shacl": "^0.4.0"
   }
 }
