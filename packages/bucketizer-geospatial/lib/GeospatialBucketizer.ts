@@ -1,7 +1,7 @@
 import type * as RDF from '@rdfjs/types';
 import type { RelationParameters } from '@treecg/types';
 import { RelationType } from '@treecg/types';
-import { BucketizerCoreExt, BucketizerCoreExtOptions, Partial } from '../../bucketizer-basic/node_modules/@treecg/bucketizer-core';
+import { BucketizerCoreExt, BucketizerCoreExtOptions, Partial } from '@treecg/bucketizer-core';
 import { SlippyMaps } from './utils/SlippyMaps';
 
 export interface ITileMetadata {

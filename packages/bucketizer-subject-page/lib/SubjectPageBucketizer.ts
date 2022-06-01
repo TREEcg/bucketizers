@@ -1,5 +1,5 @@
 import type * as RDF from '@rdfjs/types';
-import { BucketizerCoreExt, BucketizerCoreExtOptions } from '../../bucketizer-basic/node_modules/@treecg/bucketizer-core';
+import { BucketizerCoreExt, BucketizerCoreExtOptions } from '@treecg/bucketizer-core';
 
 export type SubjectInputType = Partial<BucketizerCoreExtOptions>;
 export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
