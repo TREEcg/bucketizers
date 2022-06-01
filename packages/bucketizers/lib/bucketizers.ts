@@ -61,7 +61,7 @@ type KeyMap = { [key in LDES<Props> | TREE<"path">]: [string, (item: Quad_Object
 
 const keymap: KeyMap = {
     "https://w3id.org/ldes#bucketProperty": ["bucketProperty", (x) => x.value],
-    "https://w3id.org/ldes#bucketType": ["type", (x) => x.value],
+    "https://w3id.org/ldes#bucketType": ["type", (x) => x.value.replace("https://w3id.org/ldes#", "")],
     "https://w3id.org/ldes#pageSize": ["pageSize", (x) => parseInt(x.value)],
     "https://w3id.org/tree#path": ["propertyPath", (x, quads) => x.termType === "Literal" ? x.value : quads],
 };
@@ -72,9 +72,9 @@ export async function getValidShape(ld: Quad[]): Promise<N3.Term | void> {
     const data = new N3.Store(ld);
     const factory = N3.DataFactory;
 
-    const subjects = data.getSubjects(factory.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), factory.namedNode("https://w3id.org/ldes#Bucketization"), new N3.DefaultGraph());
+    const subjects = data.getSubjects(factory.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), factory.namedNode("https://w3id.org/ldes#BucketizeStrategy"), new N3.DefaultGraph());
 
-    const shape = factory.namedNode("http://schema.org/BucketizationShape");
+    const shape = factory.namedNode("http://schema.org/BucketizeShape");
 
     for (let subject of subjects) {
         validator.validate(data);
@@ -99,5 +99,5 @@ export async function createBucketizerLD(ld: Quad[]) {
         config[key] = mapper(quad.object, ld);
     }
 
-    return await createBucketizer(config);
+    return createBucketizer(config);
 }

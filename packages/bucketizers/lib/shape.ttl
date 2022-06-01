@@ -5,12 +5,12 @@
 @prefix ldes: <https://w3id.org/ldes#> .
 @prefix tree: <https://w3id.org/tree#> .
 
-schema:BucketizationShape
+schema:BucketizeShape
   a sh:NodeShape;
-  sh:targetClass ldes:Bucketization;
+  sh:targetClass ldes:BucketizeStrategy;
   sh:property [
       sh:path ldes:bucketType ;
-      sh:pattern "basic|geospatial|substring|subject";
+      sh:in (ldes:basic ldes:geospatial ldes:substring ldes:subject);
       sh:description "Kind of bucketizer";
       sh:minCount 1 ;
       sh:maxCount 1 ;
@@ -36,7 +36,7 @@ schema:BucketizationShape
 schema:BasicBucketization
   sh:property [
     sh:path ldes:bucketType ;
-    sh:hasValue "basic";
+    sh:hasValue ldes:basic;
   ] .
 
 
@@ -68,19 +68,19 @@ schema:BucketizationCoreExt
 schema:SubstringBucketization
   sh:property [
     sh:path ldes:bucketType ;
-    sh:hasValue "substring";
+    sh:hasValue ldes:substring;
   ].
 
 schema:SubjectBucketization
   sh:property [
     sh:path ldes:bucketType ;
-    sh:hasValue "subject";
+    sh:hasValue ldes:subject;
   ].
 
 schema:GeoBucketization
   sh:property [
     sh:path ldes:bucketType ;
-    sh:hasValue "geospatial";
+    sh:hasValue ldes:geospatial;
   ], [
     sh:path ldes:zoomLevel ;
     sh:minCount 1 ;

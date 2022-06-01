@@ -45,8 +45,8 @@ describe("bucketizers-factory", () => {
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
 
-        ex:BucketizeStrategy a ldes:Bucketization;
-            ldes:bucketType "basic";
+        ex:BucketizeStrategy a ldes:BucketizeStrategy;
+            ldes:bucketType ldes:basic;
             ldes:bucketProperty ldes:bucket;
             ldes:pageSize 50.
         `;
@@ -79,8 +79,8 @@ describe("bucketizers-factory", () => {
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
 
-        ex:BucketizeStrategy a ldes:Bucketization;
-            ldes:bucketType "subject";
+        ex:BucketizeStrategy a ldes:BucketizeStrategy;
+            ldes:bucketType ldes:subject;
             ldes:bucketProperty ldes:bucket;
             tree:path ldes:Bucket2;
             ldes:pageSize 50.
@@ -115,8 +115,8 @@ describe("bucketizers-factory", () => {
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
 
-        ex:BucketizeStrategy a ldes:Bucketization;
-            ldes:bucketType "subject";
+        ex:BucketizeStrategy a ldes:BucketizeStrategy;
+            ldes:bucketType ldes:subject;
             ldes:bucketProperty ldes:bucket;
             tree:path (ex:point ex:x);
             ldes:pageSize 50.
@@ -150,8 +150,8 @@ describe("bucketizers-factory", () => {
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
 
-        ex:BucketizeStrategy a ldes:Bucketization;
-            ldes:bucketType "substring";
+        ex:BucketizeStrategy a ldes:BucketizeStrategy;
+            ldes:bucketType ldes:substring;
             ldes:bucketProperty ldes:bucket;
             tree:path ldes:Bucket2;
             ldes:pageSize 50.
@@ -190,8 +190,8 @@ describe("bucketizers-factory", () => {
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
 
-        ex:BucketizeStrategy a ldes:Bucketization;
-            ldes:bucketType "geospatial";
+        ex:BucketizeStrategy a ldes:BucketizeStrategy;
+            ldes:bucketType ldes:geospatial;
             ldes:bucketProperty ldes:bucket;
             tree:path ldes:Bucket2;
             ldes:zoomLevel 2;
@@ -231,8 +231,8 @@ describe("bucketizers-factory", () => {
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
 
-        ex:BucketizeStrategy a ldes:Bucketization;
-            ldes:bucketType "something";
+        ex:BucketizeStrategy a ldes:BucketizeStrategy;
+            ldes:bucketType ldes:something;
             ldes:pageSize 50.
         `;
 
