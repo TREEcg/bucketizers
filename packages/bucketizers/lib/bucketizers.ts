@@ -30,20 +30,19 @@ function isSubjectInputOptions(input: TypedWithOptions<keyof BucketizerOptions>)
 }
 
 // TODO: make some kind of factory that is more easily extensible
-export function createBucketizer(input: TypedWithOptions<keyof BucketizerOptions>): Bucketizer {
+export function createBucketizer(input: TypedWithOptions<keyof BucketizerOptions>, state?: any): Bucketizer {
     // Looks the same as the switch statement but ts type inference works better this way
-    if (isGeoInputOptions(input)) return GeospatialBucketizer.build(input);
-    if (isSubjectInputOptions(input)) return SubjectPageBucketizer.build(input);
+    if (isGeoInputOptions(input)) return GeospatialBucketizer.build(input, state);
+    if (isSubjectInputOptions(input)) return SubjectPageBucketizer.build(input, state);
 
     switch (input.type) {
         case "basic":
-            return BasicBucketizer.build(input);
+            return BasicBucketizer.build(input, state);
         case "substring":
-            return SubstringBucketizer.build(input);
+            return SubstringBucketizer.build(input, state);
     }
 
     throw "No valid bucketizer found for type " + input.type;
-
 }
 
 async function loadTurtle(location: string): Promise<N3.Store> {
@@ -84,7 +83,7 @@ export async function getValidShape(ld: Quad[]): Promise<N3.Term | void> {
     }
 }
 
-export async function createBucketizerLD(ld: Quad[]) {
+export async function createBucketizerLD(ld: Quad[], state?: any) {
     const validShape = await getValidShape(ld);
     if (!validShape) throw new Error("No valid shape found!");
 
@@ -99,5 +98,5 @@ export async function createBucketizerLD(ld: Quad[]) {
         config[key] = mapper(quad.object, ld);
     }
 
-    return createBucketizer(config);
+    return createBucketizer(config, state);
 }
