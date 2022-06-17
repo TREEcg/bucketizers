@@ -1,6 +1,7 @@
 import { Term } from "@rdfjs/types";
+import { BucketizerCoreExtOptions } from "@treecg/types";
 import { DataFactory as factory } from "n3";
-import { BucketizerCoreExt, BucketizerCoreExtOptions } from "../lib/BucketizerCore";
+import { BucketizerCoreExt  } from "../lib/BucketizerCore";
 
 type Input = Partial<BucketizerCoreExtOptions>;
 class FooBar extends BucketizerCoreExt<Input> {

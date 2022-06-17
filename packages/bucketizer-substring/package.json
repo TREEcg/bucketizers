@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@treecg/bucketizer-core": "^1.0.0",
-    "@treecg/types": "0.0.21",
+    "@treecg/types": "0.3.0",
     "winston": "^3.3.3"
   }
 }

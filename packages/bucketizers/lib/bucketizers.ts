@@ -1,9 +1,9 @@
 import { Quad, Quad_Object } from "@rdfjs/types";
 import { BasicBucketizer, BasicInputType } from "@treecg/basic-bucketizer";
-import { Bucketizer } from "@treecg/bucketizer-core";
 import { GeospatialBucketizer, GeospatialInputType } from "@treecg/geospatial-bucketizer";
 import { SubjectInputType, SubjectPageBucketizer } from "@treecg/subject-page-bucketizer";
 import { SubstringBucketizer, SubstringInputType } from "@treecg/substring-bucketizer";
+import { Bucketizer, LDES, RDF } from "@treecg/types";
 import { readFile } from "fs/promises";
 import * as N3 from 'n3';
 import * as Validator from "rdf-validate-shacl";
@@ -53,10 +53,12 @@ async function loadTurtle(location: string): Promise<N3.Store> {
 }
 
 
-type Props = "bucketType" | "bucketProperty" | "pageSize";
-type TREE<P extends string> = `https://w3id.org/tree#${P}`;
-type LDES<P extends string = Props> = `https://w3id.org/ldes#${P}`;
-type KeyMap = { [key in LDES<Props> | TREE<"path">]: [string, (item: Quad_Object, quads: Quad[]) => any] };
+type LDESProps = "bucketProperty" | "pageSize" | "bucketType";
+type TREEProps = "path";
+type TREE<P extends string = TREEProps> = `https://w3id.org/tree#${P}`;
+type LDES<P extends string = LDESProps> = `https://w3id.org/ldes#${P}`;
+
+type KeyMap = { [key in LDES |  TREE]: [string, (item: Quad_Object, quads: Quad[]) => any] };
 
 const keymap: KeyMap = {
     "https://w3id.org/ldes#bucketProperty": ["bucketProperty", (x) => x.value],
@@ -71,12 +73,12 @@ export async function getValidShape(ld: Quad[]): Promise<N3.Term | void> {
     const data = new N3.Store(ld);
     const factory = N3.DataFactory;
 
-    const subjects = data.getSubjects(factory.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), factory.namedNode("https://w3id.org/ldes#BucketizeStrategy"), new N3.DefaultGraph());
+    const subjects = data.getSubjects(RDF.terms.type, LDES.terms.BucketizeStrategy, null);
 
     const shape = factory.namedNode("http://schema.org/BucketizeShape");
 
     for (let subject of subjects) {
-        validator.validate(data);
+        const res = validator.validate(data);
         if (validator.nodeConformsToShape(subject, shape)) {
             return subject;
         }
@@ -97,6 +99,8 @@ export async function createBucketizerLD(ld: Quad[], state?: any) {
         const [key, mapper] = map;
         config[key] = mapper(quad.object, ld);
     }
+
+    console.log(config);
 
     return createBucketizer(config, state);
 }

@@ -1,5 +1,5 @@
 import type * as RDF from '@rdfjs/types';
-import type { BucketizerOptions, RelationParameters } from '@treecg/types';
+import type { RelationParameters } from '@treecg/types';
 import { RelationType } from '@treecg/types';
 import { DataFactory } from 'rdf-data-factory';
 import { SubstringBucketizer } from '../lib/SubstringBucketizer';
@@ -8,7 +8,7 @@ describe('ldes-substring-bucketizer', () => {
   let member: RDF.Quad[];
   const factory: RDF.DataFactory = new DataFactory();
   const bucketNode = factory.namedNode('https://w3id.org/ldes#bucket');
-  let bucketizerOptions: BucketizerOptions;
+  let bucketizerOptions: any;
 
   beforeEach(async () => {
     member = [

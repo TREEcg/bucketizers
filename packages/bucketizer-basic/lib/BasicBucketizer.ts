@@ -1,7 +1,7 @@
 import type * as RDF from '@rdfjs/types';
 import type { Partial } from "@treecg/bucketizer-core";
-import { BucketizerCore, BucketizerCoreOptions } from '@treecg/bucketizer-core';
-import type { RelationParameters } from '@treecg/types';
+import { BucketizerCore } from '@treecg/bucketizer-core';
+import type { BucketizerCoreOptions, RelationParameters } from '@treecg/types';
 import { RelationType } from '@treecg/types';
 
 export type BasicInputType = Partial<BucketizerCoreOptions>;

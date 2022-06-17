@@ -32,7 +32,7 @@
     "@treecg/geospatial-bucketizer": "^2.0.0-alpha.1",
     "@treecg/subject-page-bucketizer": "^2.0.0-alpha.1",
     "@treecg/substring-bucketizer": "^2.0.0-alpha.0",
-    "@treecg/types": "0.0.21",
+    "@treecg/types": "0.3.0",
     "n3": "^1.16.2",
     "rdf-validate-shacl": "^0.4.4",
     "winston": "^3.3.3"

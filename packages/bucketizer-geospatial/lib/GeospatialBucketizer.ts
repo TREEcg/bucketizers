@@ -1,8 +1,9 @@
 import type * as RDF from '@rdfjs/types';
 import type { RelationParameters } from '@treecg/types';
 import { RelationType } from '@treecg/types';
-import { BucketizerCoreExt, BucketizerCoreExtOptions, Partial } from '@treecg/bucketizer-core';
+import { BucketizerCoreExt, Partial } from '@treecg/bucketizer-core';
 import { SlippyMaps } from './utils/SlippyMaps';
+import { BucketizerCoreExtOptions } from '@treecg/types';
 
 export interface ITileMetadata {
   pageNumber: number;

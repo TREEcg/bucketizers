@@ -1,5 +1,4 @@
 import type * as RDF from '@rdfjs/types';
-import type { BucketizerOptions } from '@treecg/types';
 import { DataFactory } from 'rdf-data-factory';
 import { SubjectPageBucketizer } from '../lib/SubjectPageBucketizer';
 
@@ -8,7 +7,7 @@ describe('bucketizer-subject-page', () => {
   const factory: RDF.DataFactory = new DataFactory();
   const bucketNode = factory.namedNode('https://w3id.org/ldes#bucket');
 
-  const bucketizerOptions: BucketizerOptions = {
+  const bucketizerOptions: any = {
     propertyPath: '(<http://purl.org/dc/terms/isVersionOf>)',
     pageSize: 20,
   };

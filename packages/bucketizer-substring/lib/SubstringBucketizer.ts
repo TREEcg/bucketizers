@@ -1,7 +1,8 @@
 import type * as RDF from '@rdfjs/types';
+import { BucketizerCoreExt, Partial } from '@treecg/bucketizer-core';
 import type { RelationParameters } from '@treecg/types';
+import { BucketizerCoreExtOptions } from '@treecg/types';
 import { RelationType } from '@treecg/types';
-import { BucketizerCoreExt, BucketizerCoreExtOptions, Partial } from '@treecg/bucketizer-core';
 
 export type SubstringInputType = Partial<BucketizerCoreExtOptions>;
 export class SubstringBucketizer extends BucketizerCoreExt<{}> {

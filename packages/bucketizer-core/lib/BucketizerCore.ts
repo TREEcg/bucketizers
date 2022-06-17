@@ -1,22 +1,10 @@
 import type * as RDF from '@rdfjs/types';
 import { Quad } from '@rdfjs/types';
-import { getLogger, Logger, RelationParameters, RelationType } from '@treecg/types';
+import { Bucketizer, getLogger, Logger, RelationParameters, BucketizerCoreOptions, RelationType, BucketizerCoreExtOptions, XSD, TREE, RDF as RDFT } from '@treecg/types';
 import * as N3 from 'n3';
 import { DataFactory } from 'rdf-data-factory';
 
-
 export type Partial<A, B = {}> = { [P in keyof A]?: A[P] } & { [P in keyof B]: B[P] };
-
-export interface Bucketizer {
-    bucketize(quads: Quad[], memberId: string): void;
-    importState: (state: any) => void;
-    exportState: () => any;
-}
-
-export interface BucketizerCoreOptions {
-    bucketProperty: string,
-    pageSize: number,
-}
 
 export abstract class BucketizerCore<Options> implements Bucketizer {
     protected readonly factory: RDF.DataFactory = new DataFactory();
@@ -64,7 +52,7 @@ export abstract class BucketizerCore<Options> implements Bucketizer {
     protected createBucketTriple = (bucket: string, memberId: string): RDF.Quad => this.factory.quad(
         this.factory.namedNode(memberId),
         this.factory.namedNode(this.options.bucketProperty),
-        this.factory.literal(bucket, this.factory.namedNode('http://www.w3.org/2001/XMLSchema#string')),
+        this.factory.literal(bucket, XSD.terms.string),
     );
 
     public exportState(): any | undefined {
@@ -79,11 +67,6 @@ export abstract class BucketizerCore<Options> implements Bucketizer {
         this.options = state.bucketizerOptions;
         this.bucketHypermediaControlsMap = new Map(state.hypermediaControls);
     };
-}
-
-export interface BucketizerCoreExtOptions extends BucketizerCoreOptions {
-    root: string;
-    propertyPath: string | Quad[];
 }
 
 function extSetDefaults<T>(options: Partial<BucketizerCoreExtOptions, T>): BucketizerCoreExtOptions & T {
@@ -117,16 +100,16 @@ export abstract class BucketizerCoreExt<Options> extends BucketizerCore<Bucketiz
             quads = new N3.Parser().parse(fullPath);
         }
 
-        let source = quads.find(quad => quad.predicate.value === "https://w3id.org/tree#path")!.object;
+        let source = quads.find(quad => quad.predicate.value === TREE.path)!.object;
 
         const hasNext = quads.find(quad => quad.subject.equals(source));
 
         if (hasNext) {
-            while (source.value !== "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil") {
+            while(!source.equals(RDFT.terms.nil)) {
                 const listNodes = quads.filter(quad => quad.subject.equals(source));
 
-                source = listNodes.find(quad => quad.predicate.value === "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest")!.object;
-                const item = listNodes.find(quad => quad.predicate.value === "http://www.w3.org/1999/02/22-rdf-syntax-ns#first")!.object;
+                source = listNodes.find(quad => quad.predicate.equals(RDFT.terms.rest))!.object;
+                const item = listNodes.find(quad => quad.predicate.equals(RDFT.terms.first))!.object;
 
                 this.propertyPathPredicates.push(item);
             }

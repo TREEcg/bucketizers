@@ -3,10 +3,10 @@ import { createBucketizer } from "../";
 import * as N3 from "n3";
 import { createBucketizerLD, getValidShape } from "../lib/bucketizers";
 import { BasicBucketizer } from "@treecg/basic-bucketizer";
-import { Bucketizer } from "@treecg/bucketizer-core";
 import { SubjectPageBucketizer } from "@treecg/subject-page-bucketizer";
 import { SubstringBucketizer } from "@treecg/substring-bucketizer";
 import { GeospatialBucketizer } from "@treecg/geospatial-bucketizer";
+import { Bucketizer } from "@treecg/types";
 
 describe("bucketizers-factory", () => {
     test('adds 1 + 2 to equal 3', () => {
@@ -53,7 +53,8 @@ describe("bucketizers-factory", () => {
 
         test("config is valid", async () => {
             const quads = new N3.Parser().parse(rdf);
-            expect(await getValidShape(quads)).not.toBeUndefined();
+            const result = await getValidShape(quads);
+            expect(result).not.toBeUndefined();
         });
 
         test("parses from linked data", async () => {
@@ -140,7 +141,6 @@ describe("bucketizers-factory", () => {
             const state = bucketizer!.exportState();
             expect(state.propertyPathPredicates).toHaveLength(2);
         })
-
     });
 
 
