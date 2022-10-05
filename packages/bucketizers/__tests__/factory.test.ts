@@ -1,46 +1,46 @@
+import { BasicBucketizer } from '@treecg/basic-bucketizer';
+import { GeospatialBucketizer } from '@treecg/geospatial-bucketizer';
+import { SubjectPageBucketizer } from '@treecg/subject-page-bucketizer';
+import { SubstringBucketizer } from '@treecg/substring-bucketizer';
+import type { Bucketizer } from '@treecg/types';
+import * as N3 from 'n3';
+import { createBucketizer } from '..';
+import { createBucketizerLD, getValidShape } from '../lib/bucketizers';
 
-import { createBucketizer } from "../";
-import * as N3 from "n3";
-import { createBucketizerLD, getValidShape } from "../lib/bucketizers";
-import { BasicBucketizer } from "@treecg/basic-bucketizer";
-import { SubjectPageBucketizer } from "@treecg/subject-page-bucketizer";
-import { SubstringBucketizer } from "@treecg/substring-bucketizer";
-import { GeospatialBucketizer } from "@treecg/geospatial-bucketizer";
-import { Bucketizer } from "@treecg/types";
+describe('bucketizers-factory', () => {
+  test('adds 1 + 2 to equal 3', () => {
+    expect(1 + 2).toBe(3);
+  });
 
-describe("bucketizers-factory", () => {
-    test('adds 1 + 2 to equal 3', () => {
-        expect(1 + 2).toBe(3);
-    });
+  test('creating basic bucketizer with config works', () => {
+    let bucketizer,
+        err;
+    try {
+      bucketizer = createBucketizer({ type: 'basic', propertyPath: '<something>' });
+    } catch (error) {
+      err = error;
+    }
 
+    expect(bucketizer).not.toBeUndefined();
+    expect(err).toBeUndefined();
+    expect(bucketizer).toBeInstanceOf(BasicBucketizer);
+  });
 
-    test("creating basic bucketizer with config works", () => {
-        let bucketizer, err;
-        try {
-            bucketizer = createBucketizer({ "type": "basic", propertyPath: "<something>" });
-        } catch (e) {
-            err = e;
-        }
+  test('creating bucketizer with false config does not works', () => {
+    let bucketizer,
+        err;
+    try {
+      bucketizer = createBucketizer(<any>{ type: 'nothing' });
+    } catch (error) {
+      err = error;
+    }
 
-        expect(bucketizer).not.toBeUndefined();
-        expect(err).toBeUndefined();
-        expect(bucketizer).toBeInstanceOf(BasicBucketizer);
-    });
+    expect(bucketizer).toBeUndefined();
+    expect(err).not.toBeUndefined();
+  });
 
-    test("creating bucketizer with false config does not works", () => {
-        let bucketizer, err;
-        try {
-            bucketizer = createBucketizer(<any>{ "type": "nothing" });
-        } catch (e) {
-            err = e;
-        }
-
-        expect(bucketizer).toBeUndefined();
-        expect(err).not.toBeUndefined();
-    });
-
-    describe("basic bucketizer", () => {
-        const rdf = `
+  describe('basic bucketizer', () => {
+    const rdf = `
         @prefix ex: <https://example.org/ns#> .
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
@@ -51,31 +51,32 @@ describe("bucketizers-factory", () => {
             ldes:pageSize 50.
         `;
 
-        test("config is valid", async () => {
-            const quads = new N3.Parser().parse(rdf);
-            const result = await getValidShape(quads);
-            expect(result).not.toBeUndefined();
-        });
+    test('config is valid', async () => {
+      const quads = new N3.Parser().parse(rdf);
+      const result = await getValidShape(quads);
+      expect(result).not.toBeUndefined();
+    });
 
-        test("parses from linked data", async () => {
-            const quads = new N3.Parser().parse(rdf);
+    test('parses from linked data', async () => {
+      const quads = new N3.Parser().parse(rdf);
 
-            let bucketizer: Bucketizer | undefined, err;
-            try {
-                bucketizer = await createBucketizerLD(quads);
-            } catch (e: any) {
-                console.log(e.stack);
-                err = e;
-            }
+      let bucketizer: Bucketizer | undefined,
+          err;
+      try {
+        bucketizer = await createBucketizerLD(quads);
+      } catch (error: any) {
+        console.log(error.stack);
+        err = error;
+      }
 
-            expect(bucketizer).not.toBeUndefined();
-            expect(err).toBeUndefined();
-            expect(bucketizer).toBeInstanceOf(BasicBucketizer);
-        })
-    })
+      expect(bucketizer).not.toBeUndefined();
+      expect(err).toBeUndefined();
+      expect(bucketizer).toBeInstanceOf(BasicBucketizer);
+    });
+  });
 
-    describe("subject bucketizer", () => {
-        const rdf = `
+  describe('subject bucketizer', () => {
+    const rdf = `
         @prefix ex: <https://example.org/ns#> .
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
@@ -87,31 +88,32 @@ describe("bucketizers-factory", () => {
             ldes:pageSize 50.
         `;
 
-        test("config is valid", async () => {
-            const quads = new N3.Parser().parse(rdf);
-            expect(await getValidShape(quads)).not.toBeUndefined();
-        });
+    test('config is valid', async () => {
+      const quads = new N3.Parser().parse(rdf);
+      expect(await getValidShape(quads)).not.toBeUndefined();
+    });
 
-        test("parses from linked data", async () => {
-            const quads = new N3.Parser().parse(rdf);
+    test('parses from linked data', async () => {
+      const quads = new N3.Parser().parse(rdf);
 
-            let bucketizer: Bucketizer | undefined, err;
-            try {
-                bucketizer = await createBucketizerLD(quads);
-            } catch (e: any) {
-                console.log(e.stack);
-                err = e;
-            }
+      let bucketizer: Bucketizer | undefined,
+          err;
+      try {
+        bucketizer = await createBucketizerLD(quads);
+      } catch (error: any) {
+        console.log(error.stack);
+        err = error;
+      }
 
-            expect(bucketizer).not.toBeUndefined();
-            expect(err).toBeUndefined();
-            expect(bucketizer).toBeInstanceOf(SubjectPageBucketizer);
+      expect(bucketizer).not.toBeUndefined();
+      expect(err).toBeUndefined();
+      expect(bucketizer).toBeInstanceOf(SubjectPageBucketizer);
 
-            const state = bucketizer!.exportState();
-            expect(state.propertyPathPredicates).toHaveLength(1);
-        })
+      const state = bucketizer!.exportState();
+      expect(state.propertyPathPredicates).toHaveLength(1);
+    });
 
-        const rdfPath = `
+    const rdfPath = `
         @prefix ex: <https://example.org/ns#> .
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
@@ -123,29 +125,29 @@ describe("bucketizers-factory", () => {
             ldes:pageSize 50.
         `;
 
-        test("can have property path", async () => {
-            const quads = new N3.Parser().parse(rdfPath);
+    test('can have property path', async () => {
+      const quads = new N3.Parser().parse(rdfPath);
 
-            let bucketizer: Bucketizer | undefined, err;
-            try {
-                bucketizer = await createBucketizerLD(quads);
-            } catch (e: any) {
-                console.log(e.stack);
-                err = e;
-            }
+      let bucketizer: Bucketizer | undefined,
+          err;
+      try {
+        bucketizer = await createBucketizerLD(quads);
+      } catch (error: any) {
+        console.log(error.stack);
+        err = error;
+      }
 
-            expect(bucketizer).not.toBeUndefined();
-            expect(err).toBeUndefined();
-            expect(bucketizer).toBeInstanceOf(SubjectPageBucketizer);
+      expect(bucketizer).not.toBeUndefined();
+      expect(err).toBeUndefined();
+      expect(bucketizer).toBeInstanceOf(SubjectPageBucketizer);
 
-            const state = bucketizer!.exportState();
-            expect(state.propertyPathPredicates).toHaveLength(2);
-        })
+      const state = bucketizer!.exportState();
+      expect(state.propertyPathPredicates).toHaveLength(2);
     });
+  });
 
-
-    describe("substring bucketizer", () => {
-        const rdf = `
+  describe('substring bucketizer', () => {
+    const rdf = `
         @prefix ex: <https://example.org/ns#> .
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
@@ -157,35 +159,34 @@ describe("bucketizers-factory", () => {
             ldes:pageSize 50.
         `;
 
-        test("config is valid", async () => {
-            const quads = new N3.Parser().parse(rdf);
-            expect(await getValidShape(quads)).not.toBeUndefined();
-        });
-
-        test("parses from linked data", async () => {
-            const quads = new N3.Parser().parse(rdf);
-
-            let bucketizer: Bucketizer | undefined, err;
-            try {
-                bucketizer = await createBucketizerLD(quads);
-            } catch (e: any) {
-                console.log(e.stack);
-                err = e;
-            }
-
-            expect(bucketizer).not.toBeUndefined();
-            expect(err).toBeUndefined();
-            expect(bucketizer).toBeInstanceOf(SubstringBucketizer);
-
-            const state = bucketizer!.exportState();
-            expect(state.propertyPathPredicates).toHaveLength(1);
-        })
-
+    test('config is valid', async () => {
+      const quads = new N3.Parser().parse(rdf);
+      expect(await getValidShape(quads)).not.toBeUndefined();
     });
 
+    test('parses from linked data', async () => {
+      const quads = new N3.Parser().parse(rdf);
 
-    describe("geospatial bucketizer", () => {
-        const rdf = `
+      let bucketizer: Bucketizer | undefined,
+          err;
+      try {
+        bucketizer = await createBucketizerLD(quads);
+      } catch (error: any) {
+        console.log(error.stack);
+        err = error;
+      }
+
+      expect(bucketizer).not.toBeUndefined();
+      expect(err).toBeUndefined();
+      expect(bucketizer).toBeInstanceOf(SubstringBucketizer);
+
+      const state = bucketizer!.exportState();
+      expect(state.propertyPathPredicates).toHaveLength(1);
+    });
+  });
+
+  describe('geospatial bucketizer', () => {
+    const rdf = `
         @prefix ex: <https://example.org/ns#> .
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
@@ -198,35 +199,34 @@ describe("bucketizers-factory", () => {
             ldes:pageSize 50.
         `;
 
-        test("config is valid", async () => {
-            const quads = new N3.Parser().parse(rdf);
-            expect(await getValidShape(quads)).not.toBeUndefined();
-        });
-
-        test("parses from linked data", async () => {
-            const quads = new N3.Parser().parse(rdf);
-
-            let bucketizer: Bucketizer | undefined, err;
-            try {
-                bucketizer = await createBucketizerLD(quads);
-            } catch (e: any) {
-                console.log(e.stack);
-                err = e;
-            }
-
-            expect(bucketizer).not.toBeUndefined();
-            expect(err).toBeUndefined();
-            expect(bucketizer).toBeInstanceOf(GeospatialBucketizer);
-
-            const state = bucketizer!.exportState();
-            expect(state.propertyPathPredicates).toHaveLength(1);
-        })
-
+    test('config is valid', async () => {
+      const quads = new N3.Parser().parse(rdf);
+      expect(await getValidShape(quads)).not.toBeUndefined();
     });
 
+    test('parses from linked data', async () => {
+      const quads = new N3.Parser().parse(rdf);
 
-    test("invalid type gets flagged by shacl", async () => {
-        const rdf = `
+      let bucketizer: Bucketizer | undefined,
+          err;
+      try {
+        bucketizer = await createBucketizerLD(quads);
+      } catch (error: any) {
+        console.log(error.stack);
+        err = error;
+      }
+
+      expect(bucketizer).not.toBeUndefined();
+      expect(err).toBeUndefined();
+      expect(bucketizer).toBeInstanceOf(GeospatialBucketizer);
+
+      const state = bucketizer!.exportState();
+      expect(state.propertyPathPredicates).toHaveLength(1);
+    });
+  });
+
+  test('invalid type gets flagged by shacl', async () => {
+    const rdf = `
         @prefix ex: <https://example.org/ns#> .
         @prefix ldes: <https://w3id.org/ldes#> .
         @prefix tree: <https://w3id.org/tree#> .
@@ -236,19 +236,19 @@ describe("bucketizers-factory", () => {
             ldes:pageSize 50.
         `;
 
-        const quads = new N3.Parser().parse(rdf);
-        expect(await getValidShape(quads)).toBeUndefined();
+    const quads = new N3.Parser().parse(rdf);
+    expect(await getValidShape(quads)).toBeUndefined();
 
-        let bucketizer: Bucketizer | undefined, err;
-        try {
-            bucketizer = await createBucketizerLD(quads);
-        } catch (e: any) {
-            console.log(e.stack);
-            err = e;
-        }
+    let bucketizer: Bucketizer | undefined,
+        err;
+    try {
+      bucketizer = await createBucketizerLD(quads);
+    } catch (error: any) {
+      console.log(error.stack);
+      err = error;
+    }
 
-        expect(bucketizer).toBeUndefined();
-        expect(err).not.toBeUndefined();
-    })
-
-})
+    expect(bucketizer).toBeUndefined();
+    expect(err).not.toBeUndefined();
+  });
+});

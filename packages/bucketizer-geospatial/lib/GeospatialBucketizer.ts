@@ -1,17 +1,17 @@
 import type * as RDF from '@rdfjs/types';
-import type { RelationParameters } from '@treecg/types';
+import type { Partial } from '@treecg/bucketizer-core';
+import { BucketizerCoreExt } from '@treecg/bucketizer-core';
 import { RelationType } from '@treecg/types';
-import { BucketizerCoreExt, Partial } from '@treecg/bucketizer-core';
+import type { RelationParameters, BucketizerCoreExtOptions } from '@treecg/types';
 import { SlippyMaps } from './utils/SlippyMaps';
-import { BucketizerCoreExtOptions } from '@treecg/types';
 
 export interface ITileMetadata {
   pageNumber: number;
   memberCounter: number;
 }
 
-export type GeospatialInputType = Partial<BucketizerCoreExtOptions, { "zoom": number }>;
-export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> {
+export type GeospatialInputType = Partial<BucketizerCoreExtOptions, { 'zoom': number }>;
+export class GeospatialBucketizer extends BucketizerCoreExt<{ 'zoom': number }> {
   private zoomLevel: number;
   private readonly slippyMaps: SlippyMaps;
 
@@ -25,7 +25,7 @@ export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> 
     this.slippyMaps = new SlippyMaps(bucketizerOptions.zoom);
     this.tileMetadataMap = new Map();
 
-    this.addHypermediaControls(this.options.root);
+    this.setHypermediaControls(this.getRoot());
   }
 
   public static build(
@@ -39,7 +39,7 @@ export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> 
     return bucketizer;
   }
 
-  protected createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
+  protected createBuckets = (propertyPathObjects: RDF.Term[], newRelations: [string, RelationParameters][]): string[] => {
     const buckets: string[] = [];
 
     propertyPathObjects.forEach(term => {
@@ -57,15 +57,15 @@ export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> 
             metadata = this.tileMetadataMap.get(leafNodePath)!;
 
             if (metadata.memberCounter === pageSize) {
-              this.updateTileMetadata(leafNodePath, columnPath, wktString, metadata);
+              this.updateTileMetadata(leafNodePath, columnPath, wktString, metadata, newRelations);
             }
           } else {
-            metadata = this.createTileMetadata(leafNodePath, columnPath, wktString);
+            metadata = this.createTileMetadata(leafNodePath, columnPath, wktString, newRelations);
 
             // Update hypermedia controls for root (extend polygon with bounding box of new tile)
-            const rootHypermediaControls = this.getHypermediaControls(this.options.root)!;
+            const rootHypermediaControls = this.getHypermediaControls(this.getRoot())!;
             const columnRelationParameters =
-              rootHypermediaControls.find(parameterObject => parameterObject.nodeId === columnPath);
+                            rootHypermediaControls.find(parameterObject => parameterObject.nodeId === columnPath);
 
             if (columnRelationParameters) {
               const polygon = columnRelationParameters.value![0];
@@ -78,10 +78,13 @@ export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> 
                 ),
               ];
             } else {
+              const parameters = this.createRelationParameters(columnPath, wktString);
               this.addHypermediaControls(
-                this.options.root,
-                ...rootHypermediaControls, this.createRelationParameters(columnPath, wktString),
+                this.getRoot(),
+                parameters,
               );
+
+              newRelations.push([this.getRoot(), parameters]);
             }
           }
 
@@ -117,7 +120,7 @@ export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> 
     this.tileMetadataMap = new Map(state.tileMetadataMap);
   }
 
-  private readonly createTileMetadata = (tilePath: string, columnPath: string, wktString: string): ITileMetadata => {
+  private readonly createTileMetadata = (tilePath: string, columnPath: string, wktString: string, newRelations: [string, RelationParameters][]): ITileMetadata => {
     const metadata: ITileMetadata = {
       pageNumber: 0,
       memberCounter: 0,
@@ -126,7 +129,7 @@ export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> 
     this.tileMetadataMap.set(tilePath, metadata);
 
     // Update column hypermedia controls
-    this.updateColumnHypermediaControls(columnPath, tilePath, wktString, metadata.pageNumber);
+    this.updateColumnHypermediaControls(columnPath, tilePath, wktString, metadata.pageNumber, newRelations);
 
     return metadata;
   };
@@ -136,12 +139,13 @@ export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> 
     columnPath: string,
     wktString: string,
     metadata: ITileMetadata,
+    newRelations: [string, RelationParameters][],
   ): void => {
     metadata.pageNumber++;
     metadata.memberCounter = 0;
 
     // Add new page to column hypermedia controls
-    this.updateColumnHypermediaControls(columnPath, tilePath, wktString, metadata.pageNumber);
+    this.updateColumnHypermediaControls(columnPath, tilePath, wktString, metadata.pageNumber, newRelations);
   };
 
   private readonly updateColumnHypermediaControls = (
@@ -149,6 +153,7 @@ export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> 
     tilePath: string,
     wktString: string,
     pageNumber: number,
+    newRelations: [string, RelationParameters][],
   ): void => {
     let columnHypermediaControls = this.getHypermediaControls(columnPath);
     const paginatedTilePath = `${tilePath}-${pageNumber}`;
@@ -157,9 +162,8 @@ export class GeospatialBucketizer extends BucketizerCoreExt<{ "zoom": number }> 
       columnHypermediaControls = [];
     }
 
-    this.addHypermediaControls(columnPath,
-      ...columnHypermediaControls,
-      this.createRelationParameters(paginatedTilePath, wktString),
-    );
+    const parameters = this.createRelationParameters(paginatedTilePath, wktString);
+    this.addHypermediaControls(columnPath, parameters);
+    newRelations.push([columnPath, parameters]);
   };
 }

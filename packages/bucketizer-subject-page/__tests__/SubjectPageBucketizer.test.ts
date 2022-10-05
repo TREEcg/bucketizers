@@ -5,10 +5,11 @@ import { SubjectPageBucketizer } from '../lib/SubjectPageBucketizer';
 describe('bucketizer-subject-page', () => {
   let member: RDF.Quad[];
   const factory: RDF.DataFactory = new DataFactory();
-  const bucketNode = factory.namedNode('https://w3id.org/ldes#bucket');
+  const bucketNode = factory.namedNode('https://w3id.org/sds#bucket');
 
   const bucketizerOptions: any = {
     propertyPath: '(<http://purl.org/dc/terms/isVersionOf>)',
+    bucketBase: '',
     pageSize: 20,
   };
 
@@ -42,32 +43,32 @@ describe('bucketizer-subject-page', () => {
       ),
     ];
 
-    bucketizer.bucketize(newMember, 'http://example.org/id/123#456');
+    const buckets = bucketizer.bucketize(newMember, 'http://example.org/id/123#456');
 
-    const bucketTriple: RDF.Quad = newMember.find(quad => quad.predicate.equals(bucketNode))!;
+    const bucketTriple: RDF.Quad = buckets.find(quad => quad.predicate.equals(bucketNode))!;
     expect(bucketTriple.object.value).toEqual('bucketless-0');
   });
 
   it('should add one or more bucket triples to a member', async () => {
-    const originalLength = member.length;
     const bucketizer = await SubjectPageBucketizer.build(bucketizerOptions);
-    bucketizer.bucketize(member, 'http://example.org/id/123#456');
+    const buckets = bucketizer.bucketize(member, 'http://example.org/id/123#456');
 
-    const bucketQuads = member.filter(quad => quad.predicate.equals(bucketNode))!;
+    const bucketQuads = buckets.filter(quad => quad.predicate.equals(bucketNode))!;
 
     expect(bucketQuads.length).toBeGreaterThan(0);
   });
 
   it('should throw an error when property path option is not set', async () => {
-    let ok, err;
+    let err,
+        ok;
     try {
       ok = await SubjectPageBucketizer.build({});
-    } catch(e) {
-      err = e;
+    } catch (error) {
+      err = error;
     }
 
     expect(ok).toBeUndefined();
-    expect(err).toEqual("expected propertyPath in options but found undefined");
+    expect(err).toEqual('expected propertyPath in options but found undefined');
   });
 
   it('should be able to export its current state', async () => {

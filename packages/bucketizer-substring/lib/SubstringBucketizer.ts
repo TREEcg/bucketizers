@@ -1,8 +1,8 @@
 import type * as RDF from '@rdfjs/types';
-import { BucketizerCoreExt, Partial } from '@treecg/bucketizer-core';
-import type { RelationParameters } from '@treecg/types';
-import { BucketizerCoreExtOptions } from '@treecg/types';
+import type { Partial } from '@treecg/bucketizer-core';
+import { BucketizerCoreExt } from '@treecg/bucketizer-core';
 import { RelationType } from '@treecg/types';
+import type { RelationParameters, BucketizerCoreExtOptions } from '@treecg/types';
 
 export type SubstringInputType = Partial<BucketizerCoreExtOptions>;
 export class SubstringBucketizer extends BucketizerCoreExt<{}> {
@@ -12,7 +12,7 @@ export class SubstringBucketizer extends BucketizerCoreExt<{}> {
     super(bucketizerOptions);
 
     this.bucketCounterMap = new Map<string, number>();
-    this.bucketCounterMap.set(this.options.root, 0);
+    this.bucketCounterMap.set(this.getRoot(), 0);
   }
 
   public static build(bucketizerOptions: SubstringInputType, state?: any): SubstringBucketizer {
@@ -25,13 +25,13 @@ export class SubstringBucketizer extends BucketizerCoreExt<{}> {
     return bucketizer;
   }
 
-  protected createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
+  protected createBuckets = (propertyPathObjects: RDF.Term[], newRelations: [string, RelationParameters][]): string[] => {
     const buckets: string[] = [];
     propertyPathObjects.forEach(propertyPathObject => {
       const normalizedLiteral = this.normalize(propertyPathObject.value);
 
       const parts = normalizedLiteral.split(' ');
-      let currentBucket = this.options.root;
+      let currentBucket = this.getRoot();
       let substring = '';
       let bucketFound = false;
 
@@ -45,17 +45,12 @@ export class SubstringBucketizer extends BucketizerCoreExt<{}> {
             break;
           } else {
             substring += character;
-            const hypermediaControls = this.getHypermediaControls(currentBucket);
+            const hypermediaControls = this.getHypermediaControls(currentBucket, true);
 
-            if (hypermediaControls === undefined ||
-              // eslint-disable-next-line @typescript-eslint/no-loop-func
-              !hypermediaControls.some(relationParametersObject => relationParametersObject.nodeId === substring)) {
+            if (hypermediaControls.every(relationParametersObject => relationParametersObject.nodeId !== substring)) {
               const relationParameters = this.createRelationParameters(substring, substring.split('+'));
-              if (hypermediaControls === undefined) {
-                this.addHypermediaControls(currentBucket, relationParameters);
-              } else {
-                this.addHypermediaControls(currentBucket, ...hypermediaControls, relationParameters);
-              }
+              newRelations.push([currentBucket, relationParameters]);
+              this.addHypermediaControls(currentBucket, relationParameters);
 
               currentBucket = substring;
 
@@ -103,15 +98,15 @@ export class SubstringBucketizer extends BucketizerCoreExt<{}> {
   }
 
   /**
-   * Normalizes a string by removing diacritics and comma's,
-   * replaces hyphens with spaces
-   * and finally transforms the string to lowercase
-   * @param literal object value from an RDF.Quad
-   * @returns the normalized object value
-   */
+     * Normalizes a string by removing diacritics and comma's,
+     * replaces hyphens with spaces
+     * and finally transforms the string to lowercase
+     * @param literal object value from an RDF.Quad
+     * @returns the normalized object value
+     */
   private readonly normalize = (literal: string): string =>
     literal.trim().normalize('NFKD')
-      // .replace(/\p{Diacritic}/gu, '')
+    // .replace(/\p{Diacritic}/gu, '')
       .replace(/[\u0300-\u036F]/gu, '')
       .replace(/[,']/gu, '')
       .replace(/[-]/gu, ' ')

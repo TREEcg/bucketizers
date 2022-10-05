@@ -1,6 +1,7 @@
 import type * as RDF from '@rdfjs/types';
-import { BucketizerCoreExt  } from '@treecg/bucketizer-core';
-import { BucketizerCoreExtOptions } from '@treecg/types';
+import { BucketizerCoreExt } from '@treecg/bucketizer-core';
+import type { RelationParameters, BucketizerCoreExtOptions } from '@treecg/types';
+import { RelationType } from '@treecg/types';
 
 export type SubjectInputType = Partial<BucketizerCoreExtOptions>;
 export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
@@ -14,7 +15,7 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
     return bucketizer;
   }
 
-  protected createBuckets = (propertyPathObjects: RDF.Term[]): string[] => {
+  protected createBuckets = (propertyPathObjects: RDF.Term[], newRelations: [string, RelationParameters][]): string[] => {
     const buckets: string[] = [];
 
     propertyPathObjects.forEach(propertyPathObject => {
@@ -27,10 +28,23 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
           hypermediaControlsMap.set(id, []);
         }
 
+        const propMember = this.getPropertyPathMember();
+        newRelations.push([this.getRoot(), this.createRelationParameters(id, propMember.id)]);
+
         buckets.push(id);
       }
     });
 
     return buckets;
   };
+
+  private createRelationParameters(value: string, pathObject: RDF.Term): RelationParameters {
+    return {
+      type: RelationType.EqualThan,
+      value: [this.factory.literal(value)],
+      nodeId: value,
+      path: pathObject,
+    };
+  }
 }
+

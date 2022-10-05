@@ -1,6 +1,8 @@
 import type * as RDF from '@rdfjs/types';
+import { SDS } from '@treecg/types';
 import { DataFactory } from 'rdf-data-factory';
-import { GeospatialBucketizer, GeospatialInputType } from '../lib/GeospatialBucketizer';
+import type { GeospatialInputType } from '../lib/GeospatialBucketizer';
+import { GeospatialBucketizer } from '../lib/GeospatialBucketizer';
 import { SlippyMaps } from '../lib/utils/SlippyMaps';
 
 describe('geospatial-bucketizer', () => {
@@ -9,7 +11,7 @@ describe('geospatial-bucketizer', () => {
   const zoomLevel = 4;
 
   const factory: RDF.DataFactory = new DataFactory();
-  const bucketNode = factory.namedNode('https://w3id.org/ldes#bucket');
+  const bucketNode = SDS.terms.custom('bucket');
 
   let bucketizer: GeospatialBucketizer;
 
@@ -27,8 +29,9 @@ describe('geospatial-bucketizer', () => {
 
     bucketizerOptions = {
       propertyPath: '<http://www.w3.org/ns/dcat#bbox>',
+      bucketBase: '',
       pageSize: 50,
-      zoom: zoomLevel
+      zoom: zoomLevel,
     };
 
     bucketizer = await GeospatialBucketizer.build(bucketizerOptions);
@@ -45,7 +48,7 @@ describe('geospatial-bucketizer', () => {
   it('should set page size to the default value when not configured', async () => {
     bucketizerOptions = {
       propertyPath: '<http://www.w3.org/ns/dcat#bbox>',
-      zoom: zoomLevel
+      zoom: zoomLevel,
     };
 
     const geospatialBucketizer = await GeospatialBucketizer.build(bucketizerOptions);
@@ -64,9 +67,9 @@ describe('geospatial-bucketizer', () => {
       ),
     ];
 
-    bucketizer.bucketize(memberWithoutPropertyPath, 'http://example.org/id/2');
+    const buckets = bucketizer.bucketize(memberWithoutPropertyPath, 'http://example.org/id/2');
 
-    const bucketTriple: RDF.Quad = memberWithoutPropertyPath.find(quad => quad.predicate.equals(bucketNode))!;
+    const bucketTriple: RDF.Quad = buckets.find(quad => quad.predicate.equals(bucketNode))!;
     expect(bucketTriple.object.value).toEqual('bucketless-0');
   });
 
@@ -83,21 +86,22 @@ describe('geospatial-bucketizer', () => {
       ),
     ];
 
-    bucketizer.bucketize(member, 'http://example.org/id/1');
-    const predicates = member.filter(quad => quad.predicate.equals(bucketNode));
+    const buckets = bucketizer.bucketize(member, 'http://example.org/id/1');
+    const predicates = buckets.filter(quad => quad.predicate.equals(bucketNode));
 
     expect(predicates.length).toBeGreaterThan(0);
   });
 
   it('should throw an error when property path option is not set', async () => {
-    let ok, err;
+    let err,
+        ok;
     try {
       ok = await GeospatialBucketizer.build({ zoom: zoomLevel });
-    } catch (e) {
-      err = e;
+    } catch (error) {
+      err = error;
     }
     expect(ok).toBeUndefined();
-    expect(err).toEqual("expected propertyPath in options but found undefined");
+    expect(err).toEqual('expected propertyPath in options but found undefined');
   });
 
   it('should be able to export its current state', async () => {
@@ -147,9 +151,9 @@ describe('geospatial-bucketizer', () => {
       ),
     ];
 
-    bucketizer.bucketize(memberWithoutSupportedGeoType, 'http://example.org/id/2');
+    const buckets = bucketizer.bucketize(memberWithoutSupportedGeoType, 'http://example.org/id/2');
 
-    const bucketTriple: RDF.Quad = memberWithoutSupportedGeoType.find(quad => quad.predicate.equals(bucketNode))!;
+    const bucketTriple: RDF.Quad = buckets.find(quad => quad.predicate.equals(bucketNode))!;
     expect(bucketTriple.object.value).toEqual('bucketless-0');
   });
 
@@ -183,11 +187,11 @@ describe('geospatial-bucketizer', () => {
       ),
     ];
 
-    bucketizer.bucketize(member1, 'http://example.org/id/5');
-    bucketizer.bucketize(member2, 'http://example.org/id/6');
+    const buckets1 = bucketizer.bucketize(member1, 'http://example.org/id/5');
+    const buckets2 = bucketizer.bucketize(member2, 'http://example.org/id/6');
 
-    const member1Bucket = member1.find(quad => quad.predicate.equals(bucketNode))!;
-    const member2Bucket = member2.find(quad => quad.predicate.equals(bucketNode))!;
+    const member1Bucket = buckets1.find(quad => quad.predicate.equals(bucketNode))!;
+    const member2Bucket = buckets2.find(quad => quad.predicate.equals(bucketNode))!;
 
     expect(member1Bucket.object.value).toEqual(member2Bucket.object.value);
   });
@@ -196,6 +200,7 @@ describe('geospatial-bucketizer', () => {
     bucketizerOptions = {
       propertyPath: '<http://www.w3.org/ns/dcat#bbox>',
       pageSize: 1,
+      bucketBase: '',
       zoom: zoomLevel,
     };
 
@@ -220,11 +225,11 @@ describe('geospatial-bucketizer', () => {
     ];
 
     const geospatialBucketizer = await GeospatialBucketizer.build(bucketizerOptions);
-    geospatialBucketizer.bucketize(member1, 'http://example.org/id/5');
-    geospatialBucketizer.bucketize(member2, 'http://example.org/id/6');
+    const buckets1 = geospatialBucketizer.bucketize(member1, 'http://example.org/id/5');
+    const buckets2 = geospatialBucketizer.bucketize(member2, 'http://example.org/id/6');
 
-    const member1Bucket = member1.find(quad => quad.predicate.equals(bucketNode))!;
-    const member2Bucket = member2.find(quad => quad.predicate.equals(bucketNode))!;
+    const member1Bucket = buckets1.find(quad => quad.predicate.equals(bucketNode))!;
+    const member2Bucket = buckets2.find(quad => quad.predicate.equals(bucketNode))!;
 
     expect(member1Bucket.object.value).toEqual('4/8/5-0');
     expect(member2Bucket.object.value).toEqual('4/8/5-1');

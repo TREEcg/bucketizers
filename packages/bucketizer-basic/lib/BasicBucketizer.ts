@@ -1,5 +1,5 @@
 import type * as RDF from '@rdfjs/types';
-import type { Partial } from "@treecg/bucketizer-core";
+import type { Partial } from '@treecg/bucketizer-core';
 import { BucketizerCore } from '@treecg/bucketizer-core';
 import type { BucketizerCoreOptions, RelationParameters } from '@treecg/types';
 import { RelationType } from '@treecg/types';
@@ -10,7 +10,7 @@ export class BasicBucketizer extends BucketizerCore<{}> {
   public memberCounter: number;
 
   private constructor(bucketizerOptions: BasicInputType, state?: any) {
-    super(bucketizerOptions)
+    super(bucketizerOptions);
 
     this.pageNumber = 0;
     this.memberCounter = 0;
@@ -24,19 +24,23 @@ export class BasicBucketizer extends BucketizerCore<{}> {
     return new BasicBucketizer(options, state);
   }
 
-  public bucketize = (quads: RDF.Quad[], memberId: string): void => {
+  public bucketize = (_: RDF.Quad[], memberId: string): RDF.Quad[] => {
+    const out: RDF.Quad[] = [];
+
     if (this.memberCounter >= this.options.pageSize) {
       const currentPage = this.pageNumber;
       this.increasePageNumber();
       this.resetMemberCounter();
 
-      this.addHypermediaControls(`${currentPage}`, this.createRelationParameters(this.pageNumber));
+      const parameters = this.createRelationParameters(this.pageNumber);
+      this.setHypermediaControls(`${currentPage}`, parameters);
+      out.push(...this.expandRelation(`${currentPage}`, parameters));
     }
 
-    const bucketTriple = this.createBucketTriple(`${this.pageNumber}`, memberId);
-    quads.push(bucketTriple);
-
     this.increaseMemberCounter();
+
+    out.push(...this.createSDSRecord(this.factory.namedNode(memberId), [`${this.pageNumber}`]));
+    return out;
   };
 
   public exportState = (): any => {

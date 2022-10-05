@@ -1,14 +1,14 @@
 import type * as RDF from '@rdfjs/types';
-import type { RelationParameters } from '@treecg/types';
-import { RelationType } from '@treecg/types';
+import type { BucketizerCoreExtOptions, RelationParameters } from '@treecg/types';
+import { SDS, RelationType } from '@treecg/types';
 import { DataFactory } from 'rdf-data-factory';
 import { SubstringBucketizer } from '../lib/SubstringBucketizer';
 
 describe('ldes-substring-bucketizer', () => {
   let member: RDF.Quad[];
   const factory: RDF.DataFactory = new DataFactory();
-  const bucketNode = factory.namedNode('https://w3id.org/ldes#bucket');
-  let bucketizerOptions: any;
+  const bucketNode = SDS.terms.custom('bucket');
+  let bucketizerOptions: BucketizerCoreExtOptions;
 
   beforeEach(async () => {
     member = [
@@ -20,6 +20,9 @@ describe('ldes-substring-bucketizer', () => {
     ];
 
     bucketizerOptions = {
+      root: '',
+      bucketProperty: '',
+      bucketBase: '',
       propertyPath: '(<http://www.w3.org/2000/01/rdf-schema#label>)',
       pageSize: 1,
     };
@@ -56,9 +59,8 @@ describe('ldes-substring-bucketizer', () => {
       ),
     ];
 
-    bucketizer.bucketize(newMember, 'http://example.org/id/123#456');
-
-    const bucketTriple: RDF.Quad = newMember.find(quad => quad.predicate.equals(bucketNode))!;
+    const buckets = bucketizer.bucketize(newMember, 'http://example.org/id/123#456');
+    const bucketTriple: RDF.Quad = buckets.find(quad => quad.predicate.equals(bucketNode))!;
     expect(bucketTriple.object.value).toEqual('bucketless-0');
   });
 
@@ -67,18 +69,19 @@ describe('ldes-substring-bucketizer', () => {
     bucketizerOptions.pageSize = 20;
     const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
 
-    bucketizer.bucketize(member, 'http://example.org/id/123#456');
-    const bucketQuads = member.filter(quad => quad.predicate.equals(bucketNode))!;
+    const buckets = bucketizer.bucketize(member, 'http://example.org/id/123#456');
+    const bucketQuads = buckets.filter(quad => quad.predicate.equals(bucketNode))!;
 
     expect(bucketQuads.length).toBeGreaterThan(0);
   });
 
   it('should throw an error when property path option is not set', async () => {
-    let ok, error;
+    let error,
+        ok;
     try {
       ok = await SubstringBucketizer.build({});
-    } catch(e) {
-      error = e;
+    } catch (error_) {
+      error = error_;
     }
     expect(ok).toBeUndefined();
     expect(error).not.toBeUndefined();
@@ -167,7 +170,7 @@ describe('ldes-substring-bucketizer', () => {
     const buckets = ['root', 'j', 'ja'];
     [...member, ...newMember].forEach(quad => {
       if (quad.predicate.equals(bucketNode)) {
-        expect(buckets).toContain(quad.object.value)
+        expect(buckets).toContain(quad.object.value);
       }
     });
   });

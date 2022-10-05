@@ -1,27 +1,29 @@
 import type * as RDF from '@rdfjs/types';
+import { SDS } from '@treecg/types';
 import { DataFactory } from 'rdf-data-factory';
+import type { BasicInputType } from '../lib/BasicBucketizer';
 import { BasicBucketizer } from '../lib/BasicBucketizer';
 
 describe('bucketizer-basic', () => {
   const factory: RDF.DataFactory = new DataFactory();
-  const bucketNode = factory.namedNode('https://w3id.org/ldes#bucket');
+  const bucketNode = SDS.terms.custom('bucket');
 
   it('should be a function', async () => {
     expect(BasicBucketizer).toBeInstanceOf(Function);
   });
 
   it('should be a constructor', async () => {
-    const bucketizer = await BasicBucketizer.build({ pageSize: 1 });
+    const bucketizer = BasicBucketizer.build({ pageSize: 1 });
     expect(bucketizer).toBeInstanceOf(BasicBucketizer);
   });
 
   it('should set page size to the default value when not configured', async () => {
-    const bucketizer = await BasicBucketizer.build({});
+    const bucketizer = BasicBucketizer.build({});
     expect(bucketizer.options.pageSize).toEqual(50);
   });
 
   it('should add members to the same page when it is not full', async () => {
-    const bucketizer = await BasicBucketizer.build({ pageSize: 20 });
+    const bucketizer = BasicBucketizer.build({ pageSize: 20 });
     const member = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),
@@ -49,7 +51,7 @@ describe('bucketizer-basic', () => {
   });
 
   it('should add a member to a new page when current page is full', async () => {
-    const bucketizer = await BasicBucketizer.build({ pageSize: 1 });
+    const bucketizer = BasicBucketizer.build({ pageSize: 1, bucketBase: '' });
     const member = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),
@@ -58,8 +60,8 @@ describe('bucketizer-basic', () => {
       ),
     ];
 
-    bucketizer.bucketize(member, 'http://example.org/id/123#456');
-    member.forEach(quad => {
+    const buckets1 = bucketizer.bucketize(member, 'http://example.org/id/123#456');
+    buckets1.forEach(quad => {
       if (quad.predicate.equals(bucketNode)) {
         expect(quad.object.value).toEqual('0');
       }
@@ -72,9 +74,9 @@ describe('bucketizer-basic', () => {
         factory.namedNode('http://example.org/id/123'),
       ),
     ];
-    bucketizer.bucketize(newMember, 'http://example.org/id/123#789');
+    const buckets2 = bucketizer.bucketize(newMember, 'http://example.org/id/123#789');
 
-    newMember.forEach(quad => {
+    buckets2.forEach(quad => {
       if (quad.predicate.equals(bucketNode)) {
         expect(quad.object.value).toEqual('1');
       }
@@ -82,7 +84,7 @@ describe('bucketizer-basic', () => {
   });
 
   it('should be able to export its current state', async () => {
-    const bucketizer = await BasicBucketizer.build({ pageSize: 1 });
+    const bucketizer = BasicBucketizer.build({ pageSize: 1 });
     const currentState = bucketizer.exportState();
 
     expect(currentState).toHaveProperty('hypermediaControls');
@@ -98,10 +100,72 @@ describe('bucketizer-basic', () => {
       memberCounter: 5,
     };
 
-    const bucketizer = await BasicBucketizer.build({ pageSize: 10 }, state);
+    const bucketizer = BasicBucketizer.build({ pageSize: 10 }, state);
 
     expect(bucketizer.pageNumber).toEqual(state.pageNumber);
     expect(bucketizer.memberCounter).toEqual(state.memberCounter);
     expect(bucketizer.getBucketHypermediaControlsMap()).toEqual(new Map(state.hypermediaControls));
   });
+
+  it('uses bucketbase correctly', async () => {
+    const options: BasicInputType = {
+      bucketBase: '1234-',
+    };
+
+    const bucketizer = BasicBucketizer.build(options);
+
+    const member = [
+      factory.quad(
+        factory.namedNode('http://example.org/id/123#456'),
+        factory.namedNode('http://purl.org/dc/terms/isVersionOf'),
+        factory.namedNode('http://example.org/id/123'),
+      ),
+    ];
+
+    const buckets1 = bucketizer.bucketize(member, 'http://example.org/id/123#456');
+    console.log(buckets1);
+    buckets1.forEach(quad => {
+      if (quad.predicate.equals(bucketNode)) {
+        expect(quad.object.value).toEqual('1234-0');
+      }
+    });
+  });
+
+  it('links buckets correctly', async () => {
+    const options: BasicInputType = {
+      bucketBase: '1234-',
+      pageSize: 1,
+    };
+
+    const bucketizer = BasicBucketizer.build(options);
+
+    const member = [
+      factory.quad(
+        factory.namedNode('http://example.org/id/123#456'),
+        factory.namedNode('http://purl.org/dc/terms/isVersionOf'),
+        factory.namedNode('http://example.org/id/123'),
+      ),
+    ];
+
+    const buckets1 = bucketizer.bucketize(member, 'http://example.org/id/123#456');
+    const bucket1Id = buckets1.find(q => q.predicate.equals(bucketNode))!.object;
+
+    const newMember = [
+      factory.quad(
+        factory.namedNode('http://example.org/id/123#789'),
+        factory.namedNode('http://purl.org/dc/terms/isVersionOf'),
+        factory.namedNode('http://example.org/id/123'),
+      ),
+    ];
+    const buckets2 = bucketizer.bucketize(newMember, 'http://example.org/id/123#789');
+    const bucket2Id = buckets2.find(q => q.predicate.equals(bucketNode))!.object;
+
+    const relId = buckets2.find(q => q.predicate.equals(SDS.terms.custom('relation')))!;
+
+    expect(relId.subject.equals(bucket1Id)).toBeTruthy();
+
+    const targetId = buckets2.find(q => q.subject.equals(relId.object) && q.predicate.equals(SDS.terms.custom('relationBucket')))!.object;
+    expect(targetId.equals(bucket2Id)).toBeTruthy();
+  });
 });
+
