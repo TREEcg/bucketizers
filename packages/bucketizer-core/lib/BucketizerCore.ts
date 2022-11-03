@@ -145,33 +145,33 @@ export abstract class BucketizerCoreExt<Options> extends BucketizerCore<Bucketiz
 
   protected getPropertyPathMember(): Member {
     if (this.propertyPathPredicates.length === 1) {
-      console.log("propetyPath predicate with only one step")
+      console.log('propetyPath predicate with only one step');
       return {
         id: this.propertyPathPredicates[0],
-        quads: []
-      }
+        quads: [],
+      };
     }
 
     const quads: RDF.Quad[] = [];
     let id: RDF.Term = RDFT.terms.nil;
 
-    for (let pred of this.propertyPathPredicates) {
+    for (const pred of this.propertyPathPredicates) {
       const newId = this.factory.blankNode();
 
       quads.push(
         this.factory.quad(
-          newId, RDFT.terms.rest, id
+          newId, RDFT.terms.rest, id,
         ),
         this.factory.quad(
-          newId, RDFT.terms.first, <any>pred
-        )
+          newId, RDFT.terms.first, <any>pred,
+        ),
       );
 
       id = newId;
     }
 
     return {
-      quads, id
+      quads, id,
     };
   }
 
@@ -203,10 +203,10 @@ export abstract class BucketizerCoreExt<Options> extends BucketizerCore<Bucketiz
   }
 
   /**
-     * Returns triples indicating the buckets in which teh verison object must be place
+     * Returns triples indicating the buckets in which the version object must be place
      * and information about these bucket and how they relate
      *
-     * Note: This information about buckets is stateful, a previous bucket may be refered to.
+     * Note: This information about buckets is stateful, a previous bucket may be referred to.
      */
   public bucketize(quads: RDF.Quad[], memberId: string): RDF.Quad[] {
     const propertyPathObjects: RDF.Term[] = this.extractPropertyPathObject(quads, memberId);
@@ -229,7 +229,6 @@ export abstract class BucketizerCoreExt<Options> extends BucketizerCore<Bucketiz
         bucketNodes.push(this.fallback(newRelations));
       }
     }
-
 
     const out = [
       ...newRelations.flatMap(([source, rel]) => this.expandRelation(source, rel)),

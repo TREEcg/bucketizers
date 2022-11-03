@@ -1,8 +1,10 @@
 import type * as RDF from '@rdfjs/types';
 import type { BucketizerCoreExtOptions, RelationParameters } from '@treecg/types';
 import { SDS, RelationType } from '@treecg/types';
-import { DataFactory } from 'rdf-data-factory';
+import exp from 'constants';
+import { DataFactory, NamedNode } from 'rdf-data-factory';
 import { SubstringBucketizer } from '../lib/SubstringBucketizer';
+
 
 describe('ldes-substring-bucketizer', () => {
   let member: RDF.Quad[];
@@ -10,16 +12,22 @@ describe('ldes-substring-bucketizer', () => {
   const bucketNode = SDS.terms.custom('bucket');
   let bucketizerOptions: BucketizerCoreExtOptions;
 
-  beforeEach(async () => {
-    member = [
+  const getMember = (id?: string) => {
+    const idNode =
+      factory.namedNode(id || 'http://example.org/id/123#456');
+    return <[RDF.Quad[], NamedNode]>[[
       factory.quad(
-        factory.namedNode('http://example.org/id/123#456'),
+        idNode,
         factory.namedNode('http://www.w3.org/2000/01/rdf-schema#label'),
         factory.namedNode('John Doe'),
       ),
-    ];
+    ], idNode];
+  }
 
-    bucketizerOptions = {
+  beforeEach(async () => {
+    member = getMember()[0];
+
+    bucketizerOptions = <BucketizerCoreExtOptions><any>{
       root: '',
       bucketProperty: '',
       bucketBase: '',
@@ -69,15 +77,43 @@ describe('ldes-substring-bucketizer', () => {
     bucketizerOptions.pageSize = 20;
     const bucketizer = await SubstringBucketizer.build(bucketizerOptions);
 
-    const buckets = bucketizer.bucketize(member, 'http://example.org/id/123#456');
+    const [newMember, id] = getMember();
+    const buckets = bucketizer.bucketize(newMember, id.value);
+
     const bucketQuads = buckets.filter(quad => quad.predicate.equals(bucketNode))!;
 
     expect(bucketQuads.length).toBeGreaterThan(0);
   });
 
+  it('should respect pageSize', async () => {
+    bucketizerOptions.pageSize = 2;
+    const bucketizer = SubstringBucketizer.build(bucketizerOptions);
+
+    const buckets: RDF.Quad[] = [];
+
+    // 5 elements, 3 buckets
+    for (let i = 0; i < 5; i++) {
+      const [member1, id1] = getMember();
+      buckets.push(...bucketizer.bucketize(member1, id1.value));
+    }
+
+    const counts: { [label: string]: number } = {};
+    for (let bucket of buckets.filter(x => x.predicate.equals(SDS.terms.custom("bucket")))) {
+      if (!(bucket.object.value in counts)) {
+        counts[bucket.object.value] = 0;
+
+      }
+      counts[bucket.object.value]++;
+    }
+
+    const values = Object.values(counts).sort();
+
+    expect(values).toEqual([1, 2, 2]);
+  })
+
   it('should throw an error when property path option is not set', async () => {
     let error,
-        ok;
+      ok;
     try {
       ok = await SubstringBucketizer.build({});
     } catch (error_) {

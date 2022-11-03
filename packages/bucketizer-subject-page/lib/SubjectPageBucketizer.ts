@@ -26,10 +26,10 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
 
         if (!hypermediaControlsMap.has(id)) {
           hypermediaControlsMap.set(id, []);
-        }
 
-        const propMember = this.getPropertyPathMember();
-        newRelations.push([this.getRoot(), this.createRelationParameters(id, propMember.id)]);
+          const propMember = this.getPropertyPathMember();
+          newRelations.push([this.getRoot(), this.createRelationParameters(id, propMember.id)]);
+        }
 
         buckets.push(id);
       }

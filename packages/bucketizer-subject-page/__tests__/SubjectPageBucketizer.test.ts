@@ -1,4 +1,5 @@
 import type * as RDF from '@rdfjs/types';
+import { Parser } from 'n3';
 import { DataFactory } from 'rdf-data-factory';
 import { SubjectPageBucketizer } from '../lib/SubjectPageBucketizer';
 
@@ -14,13 +15,7 @@ describe('bucketizer-subject-page', () => {
   };
 
   beforeEach(async () => {
-    member = [
-      factory.quad(
-        factory.namedNode('http://example.org/id/123#456'),
-        factory.namedNode('http://purl.org/dc/terms/isVersionOf'),
-        factory.namedNode('http://example.org/id/123'),
-      ),
-    ];
+    member = new Parser().parse('<http://example.org/id/123#456> <http://purl.org/dc/terms/isVersionOf> <http://example.org/id/123>.');
   });
 
   it('should be a function', async () => {
@@ -60,7 +55,7 @@ describe('bucketizer-subject-page', () => {
 
   it('should throw an error when property path option is not set', async () => {
     let err,
-        ok;
+      ok;
     try {
       ok = await SubjectPageBucketizer.build({});
     } catch (error) {
