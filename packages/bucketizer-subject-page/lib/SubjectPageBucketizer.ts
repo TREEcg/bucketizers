@@ -15,7 +15,7 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
     return bucketizer;
   }
 
-  protected createBuckets = (propertyPathObjects: RDF.Term[], newRelations: [string, RelationParameters][]): string[] => {
+  protected createBuckets(propertyPathObjects: RDF.Term[], newRelations: [string, RelationParameters][]): string[] {
     const buckets: string[] = [];
 
     propertyPathObjects.forEach(propertyPathObject => {

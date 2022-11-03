@@ -26,29 +26,34 @@ interface BucketizerOptions {
 
 type TypedWithOptions<T extends keyof BucketizerOptions> = Typed<T> & BucketizerOptions[T];
 
-function isGeoInputOptions(input: TypedWithOptions<keyof BucketizerOptions>): input is TypedWithOptions<'geospatial'> {
+function isSubjectInputOptions(input: TypedWithOptions<keyof BucketizerOptions>): input is TypedWithOptions<'subject'> {
+  return input.type === 'subject';
+}
+function isGeoSpatialInputOptions(input: TypedWithOptions<keyof BucketizerOptions>): input is TypedWithOptions<'geospatial'> {
   return input.type === 'geospatial';
 }
 
-function isSubjectInputOptions(input: TypedWithOptions<keyof BucketizerOptions>): input is TypedWithOptions<'subject'> {
-  return input.type === 'subject';
+function isBasicInputOptions(input: TypedWithOptions<keyof BucketizerOptions>): input is TypedWithOptions<'basic'> {
+  return input.type === 'basic';
+}
+
+function isSubstringInputOptions(input: TypedWithOptions<keyof BucketizerOptions>): input is TypedWithOptions<'substring'> {
+  return input.type === 'substring';
 }
 
 // TODO: make some kind of factory that is more easily extensible
 export function createBucketizer(input: TypedWithOptions<keyof BucketizerOptions>, state?: any): Bucketizer {
-  // Looks the same as the switch statement but ts type inference works better this way
-  if (isGeoInputOptions(input)) {
+  if (isGeoSpatialInputOptions(input)) {
     return GeospatialBucketizer.build(input, state);
   }
   if (isSubjectInputOptions(input)) {
     return SubjectPageBucketizer.build(input, state);
   }
-
-  switch (input.type) {
-    case 'basic':
-      return BasicBucketizer.build(input, state);
-    case 'substring':
-      return SubstringBucketizer.build(input, state);
+  if (isBasicInputOptions(input)) {
+    return BasicBucketizer.build(input, state);
+  }
+  if (isSubstringInputOptions(input)) {
+    return SubstringBucketizer.build(input, state);
   }
 
   throw `No valid bucketizer found for type ${input.type}`;
@@ -66,7 +71,7 @@ type TREEProps = 'path';
 type TREE<P extends string = TREEProps> = `https://w3id.org/tree#${P}`;
 type LDES<P extends string = LDESProps> = `https://w3id.org/ldes#${P}`;
 
-type KeyMap = {[key in LDES | TREE]: [string, (item: Quad_Object, quads: Quad[]) => any]};
+type KeyMap = { [key in LDES | TREE]: [string, (item: Quad_Object, quads: Quad[]) => any] };
 
 const keymap: KeyMap = {
   'https://w3id.org/ldes#bucketProperty': ['bucketProperty', x => x.value],

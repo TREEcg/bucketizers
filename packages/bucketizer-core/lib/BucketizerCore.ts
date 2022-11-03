@@ -23,16 +23,12 @@ export abstract class BucketizerCore<Options> implements Bucketizer {
       options.pageSize = 50;
     }
 
-    if (options.bucketBase === undefined) {
-      options.bucketBase = '';
-    }
-
     // This is safe, we gave default values to fields of BucketizerCoreOptions
     this.options = <BucketizerCoreOptions & Options>options;
   }
 
   private bucketNode(id: string): RDF.NamedNode {
-    return this.factory.namedNode(this.options.bucketBase + id);
+    return this.factory.namedNode(id);
   }
 
   abstract bucketize(quads: RDF.Quad[], memberId: string): RDF.Quad[];
@@ -143,7 +139,7 @@ export abstract class BucketizerCoreExt<Options> extends BucketizerCore<Bucketiz
     this.setPropertyPathQuads(this.options.propertyPath);
   }
 
-  protected getPropertyPathMember(): Member {
+  public getPropertyPathMember(): Member {
     if (this.propertyPathPredicates.length === 1) {
       console.log('propetyPath predicate with only one step');
       return {
@@ -212,6 +208,7 @@ export abstract class BucketizerCoreExt<Options> extends BucketizerCore<Bucketiz
     const propertyPathObjects: RDF.Term[] = this.extractPropertyPathObject(quads, memberId);
     const newRelations: [string, RelationParameters][] = [];
     const bucketNodes: string[] = [];
+
 
     if (propertyPathObjects.length <= 0) {
       this.logger.warn(`No matches found for property path "${this.options.propertyPath}" in member "${memberId}". Applying fallback.`);

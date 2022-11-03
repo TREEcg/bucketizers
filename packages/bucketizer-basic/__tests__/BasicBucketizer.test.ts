@@ -51,7 +51,7 @@ describe('bucketizer-basic', () => {
   });
 
   it('should add a member to a new page when current page is full', async () => {
-    const bucketizer = BasicBucketizer.build({ pageSize: 1, bucketBase: '' });
+    const bucketizer = BasicBucketizer.build({ pageSize: 1 });
     const member = [
       factory.quad(
         factory.namedNode('http://example.org/id/123#456'),
@@ -109,7 +109,6 @@ describe('bucketizer-basic', () => {
 
   it('uses bucketbase correctly', async () => {
     const options: BasicInputType = {
-      bucketBase: '1234-',
     };
 
     const bucketizer = BasicBucketizer.build(options);
@@ -126,14 +125,13 @@ describe('bucketizer-basic', () => {
     console.log(buckets1);
     buckets1.forEach(quad => {
       if (quad.predicate.equals(bucketNode)) {
-        expect(quad.object.value).toEqual('1234-0');
+        expect(quad.object.value).toEqual('0');
       }
     });
   });
 
   it('links buckets correctly', async () => {
     const options: BasicInputType = {
-      bucketBase: '1234-',
       pageSize: 1,
     };
 

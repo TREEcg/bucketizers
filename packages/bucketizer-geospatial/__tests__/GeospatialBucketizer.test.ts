@@ -29,7 +29,6 @@ describe('geospatial-bucketizer', () => {
 
     bucketizerOptions = {
       propertyPath: '<http://www.w3.org/ns/dcat#bbox>',
-      bucketBase: '',
       pageSize: 50,
       zoom: zoomLevel,
     };
@@ -94,7 +93,7 @@ describe('geospatial-bucketizer', () => {
 
   it('should throw an error when property path option is not set', async () => {
     let err,
-        ok;
+      ok;
     try {
       ok = await GeospatialBucketizer.build({ zoom: zoomLevel });
     } catch (error) {
@@ -200,7 +199,6 @@ describe('geospatial-bucketizer', () => {
     bucketizerOptions = {
       propertyPath: '<http://www.w3.org/ns/dcat#bbox>',
       pageSize: 1,
-      bucketBase: '',
       zoom: zoomLevel,
     };
 
