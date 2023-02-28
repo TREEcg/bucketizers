@@ -1,9 +1,25 @@
 import type * as RDF from '@rdfjs/types';
-import type { Partial } from '@treecg/bucketizer-core';
+import { Factory, findProperty, parseBucketizerExtCoreOptions, Partial } from '@treecg/bucketizer-core';
 import { BucketizerCoreExt } from '@treecg/bucketizer-core';
-import { RelationType } from '@treecg/types';
+import { RelationType, LDES, Bucketizer } from '@treecg/types';
 import type { RelationParameters, BucketizerCoreExtOptions } from '@treecg/types';
 import { SlippyMaps } from './utils/SlippyMaps';
+
+export class GeospatialBucketizerFactory implements Factory<BucketizerCoreExtOptions & {"zoom": number}> {
+    type: string = "geospatial";
+    build(config: BucketizerCoreExtOptions & {'zoom': number}, state?: any): Bucketizer {
+      return GeospatialBucketizer.build(config, state)
+    }
+
+  ldConfig(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreExtOptions & {'zoom': number} | void {
+    const out = parseBucketizerExtCoreOptions(quads, subject);
+    if(out.type.value === LDES.custom(this.type)) {
+      return Object.assign(out, {'zoom': parseInt(findProperty(quads, subject, LDES.terms.custom("zoom")).value)});
+    } else {
+      return;
+    }
+  }
+}
 
 export interface ITileMetadata {
   pageNumber: number;

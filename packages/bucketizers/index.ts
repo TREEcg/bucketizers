@@ -4,3 +4,4 @@ export * from '@treecg/subject-page-bucketizer';
 export * from '@treecg/geospatial-bucketizer';
 
 export * from './lib/bucketizers';
+export * from './lib/factories';

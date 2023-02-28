@@ -1,7 +1,23 @@
 import type * as RDF from '@rdfjs/types';
-import { BucketizerCoreExt } from '@treecg/bucketizer-core';
-import type { RelationParameters, BucketizerCoreExtOptions } from '@treecg/types';
+import { BucketizerCoreExt, Factory, parseBucketizerExtCoreOptions } from '@treecg/bucketizer-core';
+import { RelationParameters, BucketizerCoreExtOptions, LDES, Bucketizer } from '@treecg/types';
 import { RelationType } from '@treecg/types';
+
+export class SubjectPageBucketizerFactory implements Factory<BucketizerCoreExtOptions> {
+    type: string = "subject";
+    build(config: BucketizerCoreExtOptions, state?: any): Bucketizer {
+      return SubjectPageBucketizer.build(config, state);
+    }
+
+  ldConfig(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreExtOptions | void {
+    const out = parseBucketizerExtCoreOptions(quads, subject);
+    if(out.type.value === LDES.custom("subject")) {
+      return out;
+    } else {
+      return;
+    }
+  }
+}
 
 export type SubjectInputType = Partial<BucketizerCoreExtOptions>;
 export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
@@ -14,6 +30,7 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
 
     return bucketizer;
   }
+
 
   protected createBuckets(propertyPathObjects: RDF.Term[], newRelations: [string, RelationParameters][]): string[] {
     const buckets: string[] = [];

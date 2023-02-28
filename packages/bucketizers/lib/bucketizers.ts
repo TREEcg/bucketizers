@@ -1,62 +1,23 @@
 import { readFile } from 'fs/promises';
-import type { Quad, Quad_Object } from '@rdfjs/types';
+import type { Quad } from '@rdfjs/types';
 import type { BasicInputType } from '@treecg/basic-bucketizer';
-import { BasicBucketizer } from '@treecg/basic-bucketizer';
 import type { GeospatialInputType } from '@treecg/geospatial-bucketizer';
-import { GeospatialBucketizer } from '@treecg/geospatial-bucketizer';
 import type { SubjectInputType } from '@treecg/subject-page-bucketizer';
-import { SubjectPageBucketizer } from '@treecg/subject-page-bucketizer';
 import type { SubstringInputType } from '@treecg/substring-bucketizer';
-import { SubstringBucketizer } from '@treecg/substring-bucketizer';
 import type { Bucketizer } from '@treecg/types';
 import { LDES, RDF } from '@treecg/types';
 import * as N3 from 'n3';
 import * as Validator from 'rdf-validate-shacl';
+import { Term } from '@rdfjs/types';
+import { Configs, FACTORY } from '..';
 
-interface Typed<T> {
-  'type': T;
+interface Typed {
+  'type': string;
 }
 
-interface BucketizerOptions {
-  'basic': BasicInputType;
-  'substring': SubstringInputType;
-  'subject': SubjectInputType;
-  'geospatial': GeospatialInputType;
-}
 
-type TypedWithOptions<T extends keyof BucketizerOptions> = Typed<T> & BucketizerOptions[T];
-
-function isSubjectInputOptions(input: TypedWithOptions<keyof BucketizerOptions>): input is TypedWithOptions<'subject'> {
-  return input.type === 'subject';
-}
-function isGeoSpatialInputOptions(input: TypedWithOptions<keyof BucketizerOptions>): input is TypedWithOptions<'geospatial'> {
-  return input.type === 'geospatial';
-}
-
-function isBasicInputOptions(input: TypedWithOptions<keyof BucketizerOptions>): input is TypedWithOptions<'basic'> {
-  return input.type === 'basic';
-}
-
-function isSubstringInputOptions(input: TypedWithOptions<keyof BucketizerOptions>): input is TypedWithOptions<'substring'> {
-  return input.type === 'substring';
-}
-
-// TODO: make some kind of factory that is more easily extensible
-export function createBucketizer(input: TypedWithOptions<keyof BucketizerOptions>, state?: any): Bucketizer {
-  if (isGeoSpatialInputOptions(input)) {
-    return GeospatialBucketizer.build(input, state);
-  }
-  if (isSubjectInputOptions(input)) {
-    return SubjectPageBucketizer.build(input, state);
-  }
-  if (isBasicInputOptions(input)) {
-    return BasicBucketizer.build(input, state);
-  }
-  if (isSubstringInputOptions(input)) {
-    return SubstringBucketizer.build(input, state);
-  }
-
-  throw `No valid bucketizer found for type ${input.type}`;
+export function createBucketizer(input: Configs & Typed, state?: any): Bucketizer {
+  return FACTORY.build(input, input.type, state);
 }
 
 async function loadTurtle(location: string): Promise<N3.Store> {
@@ -66,22 +27,8 @@ async function loadTurtle(location: string): Promise<N3.Store> {
   return new N3.Store(quads);
 }
 
-type LDESProps = 'bucketProperty' | 'pageSize' | 'bucketType' | 'bucketBase';
-type TREEProps = 'path';
-type TREE<P extends string = TREEProps> = `https://w3id.org/tree#${P}`;
-type LDES<P extends string = LDESProps> = `https://w3id.org/ldes#${P}`;
 
-type KeyMap = { [key in LDES | TREE]: [string, (item: Quad_Object, quads: Quad[]) => any] };
-
-const keymap: KeyMap = {
-  'https://w3id.org/ldes#bucketProperty': ['bucketProperty', x => x.value],
-  'https://w3id.org/ldes#bucketType': ['type', x => x.value.replace('https://w3id.org/ldes#', '')],
-  'https://w3id.org/ldes#bucketBase': ['bucketBase', x => x.value],
-  'https://w3id.org/ldes#pageSize': ['pageSize', x => Number.parseInt(x.value)],
-  'https://w3id.org/tree#path': ['propertyPath', (x, quads) => x.termType === 'Literal' ? x.value : quads],
-};
-
-export async function getValidShape(ld: Quad[]): Promise<N3.Term | void> {
+export async function getValidShape(ld: Quad[], subject?: Term): Promise<N3.Term | void> {
   const shapeData = await loadTurtle(`${__dirname}/shape.ttl`);
   const validator = new Validator(shapeData);
   const data = new N3.Store(ld);
@@ -91,33 +38,23 @@ export async function getValidShape(ld: Quad[]): Promise<N3.Term | void> {
 
   const shape = factory.namedNode('http://schema.org/BucketizeShape');
 
-  for (const subject of subjects) {
+  for (const sub of subjects) {
+    if (subject && sub !== subject) {
+      continue;
+    }
     validator.validate(data);
-    if (validator.nodeConformsToShape(subject, shape)) {
-      return subject;
+    if (validator.nodeConformsToShape(sub, shape)) {
+      return sub;
     }
   }
 }
 
-export async function createBucketizerLD(ld: Quad[], state?: any): Promise<Bucketizer> {
-  const validShape = await getValidShape(ld);
+export async function createBucketizerLD(ld: Quad[], subject?: Term, state?: any): Promise<Bucketizer> {
+  const validShape = await getValidShape(ld, subject);
   if (!validShape) {
     throw new Error('No valid shape found!');
   }
 
-  const quads = ld.filter(quad => quad.subject.equals(validShape));
-  const config: any = {};
-
-  for (const quad of quads) {
-    const map = keymap[<LDES>quad.predicate.value];
-    if (!map) {
-      continue;
-    }
-
-    const [key, mapper] = map;
-    config[key] = mapper(quad.object, ld);
-  }
-
-  return createBucketizer(config, state);
+  return FACTORY.buildLD(ld, validShape, state);
 }
 

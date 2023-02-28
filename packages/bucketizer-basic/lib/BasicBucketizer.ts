@@ -1,8 +1,24 @@
 import type * as RDF from '@rdfjs/types';
-import type { Partial } from '@treecg/bucketizer-core';
+import { Factory, parseBucketizerExtCoreOptions, Partial } from '@treecg/bucketizer-core';
 import { BucketizerCore } from '@treecg/bucketizer-core';
-import type { BucketizerCoreOptions, RelationParameters } from '@treecg/types';
-import { RelationType } from '@treecg/types';
+import { Bucketizer, BucketizerCoreOptions, RelationParameters } from '@treecg/types';
+import { RelationType, LDES } from '@treecg/types';
+
+export class BasicBucketizerFactory implements Factory<BucketizerCoreOptions> {
+    type: string = "basic";
+    build(config: BucketizerCoreOptions, state?: any): Bucketizer {
+      return BasicBucketizer.build(config, state)
+    }
+
+  ldConfig(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreOptions | void {
+    const out = parseBucketizerExtCoreOptions(quads, subject);
+    if(out.type.value === LDES.custom(this.type)) {
+      return out;
+    } else {
+      return;
+    }
+  }
+}
 
 export type BasicInputType = Partial<BucketizerCoreOptions>;
 export class BasicBucketizer extends BucketizerCore<{}> {

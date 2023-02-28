@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "@treecg/bucketizer-core": "^1.1.0",
-    "@treecg/types": "0.3.0",
     "@turf/bbox-polygon": "^6.5.0",
     "@turf/turf": "^6.5.0",
     "geojson-dissolve": "^3.1.0",

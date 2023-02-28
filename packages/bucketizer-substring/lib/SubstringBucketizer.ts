@@ -1,8 +1,24 @@
 import type * as RDF from '@rdfjs/types';
-import type { Partial } from '@treecg/bucketizer-core';
+import { Factory, parseBucketizerExtCoreOptions, Partial } from '@treecg/bucketizer-core';
 import { BucketizerCoreExt } from '@treecg/bucketizer-core';
-import { RelationType } from '@treecg/types';
+import { Bucketizer, LDES, RelationType } from '@treecg/types';
 import type { RelationParameters, BucketizerCoreExtOptions } from '@treecg/types';
+
+export class SubstringBucketizerFactory implements Factory<BucketizerCoreExtOptions> {
+    type: string = "substring";
+    build(config: BucketizerCoreExtOptions, state?: any): Bucketizer {
+      return SubstringBucketizer.build(config, state);
+    }
+
+  ldConfig(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreExtOptions {
+    const out = parseBucketizerExtCoreOptions(quads, subject);
+    if(out.type.value === LDES.custom(this.type)) {
+      return out;
+    } else {
+      throw "Exptected type " + LDES.custom("substring");
+    }
+  }
+}
 
 export type SubstringInputType = Partial<BucketizerCoreExtOptions>;
 export class SubstringBucketizer extends BucketizerCoreExt<{}> {
@@ -69,10 +85,6 @@ export class SubstringBucketizer extends BucketizerCoreExt<{}> {
           break;
         }
 
-        // It's possible that a bucket was not found yet for a substring, but that there are
-        // no other parts anymore to iterate, so we still have to add that substring to the bucket
-        // It's possible that we exceed the page limit.
-        // If there are other parts, add '+' to the substring
         if (parts.length > 1) {
           substring += '+';
         } else {
@@ -106,7 +118,7 @@ export class SubstringBucketizer extends BucketizerCoreExt<{}> {
      */
   private readonly normalize = (literal: string): string =>
     literal.trim().normalize('NFKD')
-    // .replace(/\p{Diacritic}/gu, '')
+      // .replace(/\p{Diacritic}/gu, '')
       .replace(/[\u0300-\u036F]/gu, '')
       .replace(/[,']/gu, '')
       .replace(/[-]/gu, ' ')

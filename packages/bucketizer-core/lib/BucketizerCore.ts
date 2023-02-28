@@ -1,12 +1,55 @@
 import type * as RDF from '@rdfjs/types';
 import type { Quad } from '@rdfjs/types';
-import type { Bucketizer, Logger, RelationParameters, BucketizerCoreOptions, BucketizerCoreExtOptions, Member } from '@treecg/types';
+import { Bucketizer, Logger, RelationParameters, BucketizerCoreOptions, BucketizerCoreExtOptions, Member, LDES } from '@treecg/types';
 import { getLogger, RelationType, TREE, RDF as RDFT, SDS } from '@treecg/types';
 import * as N3 from 'n3';
 import { DataFactory } from 'rdf-data-factory';
 
 export type Partial<A, B = {}> = { [P in keyof A]?: A[P] } & { [P in keyof B]: B[P] };
 export type BucketId = string;
+
+export function findProperty(quads: RDF.Quad[], subject: RDF.Term, predicate: RDF.Term): RDF.Term {
+  const quad = quads.find(q => q.subject.value === subject.value && q.predicate.value === predicate.value);
+  if (!quad) {
+    throw "Not found!";
+  }
+  return quad.object;
+}
+
+export function parseBucketizerCoreOptions(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreOptions & {'type': RDF.Term} {
+    const out = <BucketizerCoreOptions & {'type': RDF.Term}> {};
+
+    try {
+      out.bucketProperty = findProperty(quads, subject, LDES.terms.bucketProperty).value;
+    } catch(e: any) { }
+
+    try {
+      const pageSize = findProperty(quads, subject, LDES.terms.custom("pageSize")).value;
+      out.pageSize = parseInt(pageSize);
+    } catch(e: any) {
+      out.pageSize = 50;
+    }
+
+    out.type = findProperty(quads, subject, LDES.terms.bucketType);
+    
+    return out;
+}
+
+export function parseBucketizerExtCoreOptions(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreExtOptions & {'type': RDF.Term} {
+    const options = <BucketizerCoreExtOptions & {'type': RDF.Term}> parseBucketizerCoreOptions(quads, subject);
+
+    try {
+      options.root = findProperty(quads, subject, LDES.terms.custom("bucketRoot")).value
+    } catch(e: any) {
+      options.root = 'root';
+    }
+
+    options.propertyPath = findProperty(quads, subject, TREE.terms.path).value
+
+    return options;
+}
+
+
 
 export abstract class BucketizerCore<Options> implements Bucketizer {
   protected readonly factory: RDF.DataFactory = new DataFactory();
@@ -125,7 +168,7 @@ function extSetDefaults<T>(options: Partial<BucketizerCoreExtOptions, T>): Bucke
   return <BucketizerCoreExtOptions & T>options;
 }
 
-export abstract class BucketizerCoreExt<Options> extends BucketizerCore<BucketizerCoreExtOptions & Options> {
+export abstract class BucketizerCoreExt<Options = {}> extends BucketizerCore<BucketizerCoreExtOptions & Options> {
   public propertyPathPredicates: RDF.Term[];
   private bucketlessPageNumber: number;
   private bucketlessPageMemberCounter: number;
