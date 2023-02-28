@@ -1,6 +1,6 @@
 {
   "name": "@treecg/subject-page-bucketizer",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Applies a subject page fragmentation to LDES members",
   "author": "Dwight Van Lancker <dwight.vanlancker@hotmail.com>",
   "homepage": "https://github.com/TREEcg/bucketizers#readme",
@@ -27,8 +27,8 @@
     "url": "https://github.com/TREEcg/bucketizers/issues"
   },
   "dependencies": {
-    "@treecg/bucketizer-core": "^1.1.0",
-    "winston": "^3.3.3",
-    "n3": "^1.16.2"
+    "@treecg/bucketizer-core": "^1.1.1",
+    "n3": "^1.16.2",
+    "winston": "^3.3.3"
   }
 }
