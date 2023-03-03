@@ -2,8 +2,8 @@ import { Bucketizer } from "@treecg/types";
 import { Quad, Term } from "rdf-js";
 
 export interface Typed<C> {
-    type: string;
-    config: C;
+  type: string;
+  config: C;
 };
 
 export interface Factory<C> {
@@ -23,14 +23,14 @@ export class FactoryBuilder<C> {
   }
 
   add<N>(factory: Factory<N>): FactoryBuilder<C | N> {
-      const nInner = <Factory<C | N>[]>this.factories;
-      nInner.push(factory);
-      return new FactoryBuilder(nInner);
+    const nInner = <Factory<C | N>[]>this.factories;
+    nInner.push(factory);
+    return new FactoryBuilder(nInner);
   }
 
   build(config: C, type: string, state?: any): Bucketizer {
-    for(let f of this.factories) {
-      if(f.type.toLowerCase() === type.toLowerCase()) {
+    for (let f of this.factories) {
+      if (f.type.toLowerCase() === type.toLowerCase()) {
         return f.build(config, state)
       }
     }
@@ -38,11 +38,15 @@ export class FactoryBuilder<C> {
     throw "No such factory found! " + type;
   }
 
-  getConfig(quads: Quad[], subject: Term):  {config: C, type: string} {
-    for(let f of this.factories) {
-      const config = f.ldConfig(quads, subject);
-      if (config) {
-        return {config, type: f.type};
+  getConfig(quads: Quad[], subject: Term): { config: C, type: string } {
+    for (let f of this.factories) {
+      try {
+        const config = f.ldConfig(quads, subject);
+        if (config) {
+          return { config, type: f.type };
+        }
+      } catch (e: any) {
+
       }
     }
 
@@ -51,10 +55,14 @@ export class FactoryBuilder<C> {
 
 
   buildLD(quads: Quad[], subject: Term, state?: any): Bucketizer {
-    for(let f of this.factories) {
-      const config = f.ldConfig(quads, subject);
-      if (config) {
-        return f.build(config, state);
+    for (let f of this.factories) {
+      try {
+        const config = f.ldConfig(quads, subject);
+        if (config) {
+          return f.build(config, state);
+        }
+      } catch (e: any) {
+
       }
     }
 

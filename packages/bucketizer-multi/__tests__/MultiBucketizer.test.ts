@@ -1,5 +1,4 @@
 import type * as RDF from '@rdfjs/types';
-import { SDS } from '@treecg/types';
 import { DataFactory } from 'rdf-data-factory';
 import type { MultiBucketizerOptions } from '../lib/MultiBucketizer';
 import { MultiBucketizerFactory } from '../lib/MultiBucketizer';
@@ -62,11 +61,38 @@ describe('bucketizer-multi', () => {
       extrasArray.push(new N3.Writer().quadsToString(extras));
     }
 
-    for (let i = 0; i < quadsArray.length; i++) {
-      console.log("---------- ", i, " --------------\n", quadsArray[i], "\n", extrasArray[i]);
-    }
+    // for (let i = 0; i < quadsArray.length; i++) {
+    //   console.log("---------- ", i, " --------------\n", quadsArray[i], "\n", extrasArray[i]);
+    // }
 
-    throw "Nope"
+    // throw "Nope"
+  });
+
+  it("Parse ld correctly", () => {
+    const ld = `
+@prefix ex: <http://example.org/ns#> .
+@prefix ldes: <https://w3id.org/ldes#> .
+@prefix tree: <https://w3id.org/tree#> .
+
+ex:MultiBucketizeStrategy a ldes:BucketizeStrategy;
+  a ldes:multi;
+  ldes:bucketType ldes:multi;
+  ldes:configs (
+    ex:BucketizeStrategy
+    ex:BucketizeStrategy
+  ) .
+
+ex:BucketizeStrategy
+    ldes:bucketType ldes:subject;
+    ldes:bucketProperty ldes:bucket2;
+    tree:path ex:x;
+    ldes:pageSize 2.
+    `;
+    const quads = new N3.Parser().parse(ld);
+    const f = new MultiBucketizerFactory();
+    const c = f.ldConfig(quads, factory.namedNode("http://example.org/ns#MultiBucketizeStrategy"));
+
+    expect(c).not.toBeUndefined()
   });
 
 });

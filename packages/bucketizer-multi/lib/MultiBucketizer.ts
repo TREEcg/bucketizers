@@ -20,9 +20,10 @@ export class MultiBucketizerFactory implements Factory<MultiBucketizerOptions> {
   }
 
   ldConfig(quads: RDF.Quad[], subject: RDF.Term): MultiBucketizerOptions | void {
-    if (findProperty(quads, subject, RDFT.terms.type).value === LDES.custom(this.type)) {
+    if (findProperty(quads, subject, LDES.terms.bucketType).value !== LDES.custom(this.type)) {
       return;
     }
+
     const configs: { config: Configs, type: string }[] = [];
     let current = findProperty(quads, subject, LDES.terms.custom("configs"));
     try {
