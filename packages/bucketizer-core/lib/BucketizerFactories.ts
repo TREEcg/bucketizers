@@ -38,6 +38,18 @@ export class FactoryBuilder<C> {
     throw "No such factory found! " + type;
   }
 
+  getConfig(quads: Quad[], subject: Term):  {config: C, type: string} {
+    for(let f of this.factories) {
+      const config = f.ldConfig(quads, subject);
+      if (config) {
+        return {config, type: f.type};
+      }
+    }
+
+    throw "No such factory found!";
+  }
+
+
   buildLD(quads: Quad[], subject: Term, state?: any): Bucketizer {
     for(let f of this.factories) {
       const config = f.ldConfig(quads, subject);

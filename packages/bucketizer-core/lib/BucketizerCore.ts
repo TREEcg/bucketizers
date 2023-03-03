@@ -39,7 +39,7 @@ export function parseBucketizerExtCoreOptions(quads: RDF.Quad[], subject: RDF.Te
     const options = <BucketizerCoreExtOptions & {'type': RDF.Term}> parseBucketizerCoreOptions(quads, subject);
 
     try {
-      options.root = findProperty(quads, subject, LDES.terms.custom("bucketRoot")).value
+      options.root = findProperty(quads, subject, LDES.terms.custom("isBucketRoot")).value
     } catch(e: any) {
       options.root = 'root';
     }
@@ -72,6 +72,10 @@ export abstract class BucketizerCore<Options> implements Bucketizer {
 
   private bucketNode(id: string): RDF.NamedNode {
     return this.factory.namedNode(id);
+  }
+
+  public getRoot(): string {
+    return "";
   }
 
   abstract bucketize(quads: RDF.Quad[], memberId: string): RDF.Quad[];
@@ -117,6 +121,14 @@ export abstract class BucketizerCore<Options> implements Bucketizer {
     }
     if (to.path) {
       out.push(this.factory.quad(relationId, SDS.terms.custom('relationPath'), <RDF.Quad_Object>to.path));
+    }
+
+    // Add information about root buckets
+    if (from === this.getRoot()) {
+      out.push(this.factory.quad(sourceId, SDS.terms.custom('isRoot'), this.factory.literal("true")));
+    }
+    if (to.nodeId === this.getRoot()) {
+      out.push(this.factory.quad(targetId, SDS.terms.custom('isRoot'), this.factory.literal("true")));
     }
 
     return out;
@@ -312,10 +324,6 @@ export abstract class BucketizerCoreExt<Options = {}> extends BucketizerCore<Buc
     return this.propertyPathPredicates;
   }
 
-  public getRoot(): string {
-    return this.options.root || 'root';
-  }
-
   public exportState(): any {
     const state = super.exportState();
     return Object.assign(state, {
@@ -324,6 +332,10 @@ export abstract class BucketizerCoreExt<Options = {}> extends BucketizerCore<Buc
       bucketlessPageNumber: this.bucketlessPageNumber,
       bucketlessPageMemberCounter: this.bucketlessPageMemberCounter,
     });
+  }
+
+  public getRoot(): string {
+    return this.options.root || "root";
   }
 
   public importState(state: any): void {

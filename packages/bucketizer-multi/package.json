@@ -1,0 +1,36 @@
+{
+    "name": "@treecg/multi-bucketizer",
+    "version": "1.0.0",
+    "description": "Applies multiple bucketizers in series. Can be used for multidimensional bucketization.",
+    "author": "Arthur Vercruysse <arthur.vercruysse@ugent.be>",
+    "homepage": "https://github.com/TREEcg/bucketizers#readme",
+    "license": "MIT",
+    "main": "index.js",
+    "publishConfig": {
+        "access": "public"
+    },
+    "directories": {
+        "lib": "lib",
+        "test": "__tests__"
+    },
+    "files": [
+        "index.js",
+        "index.d.ts",
+        "lib/**/*.js",
+        "lib/**/*.d.ts"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/TREEcg/bucketizers.git"
+    },
+    "bugs": {
+        "url": "https://github.com/TREEcg/bucketizers/issues"
+    },
+    "dependencies": {
+        "@treecg/bucketizer-core": "^1.1.1",
+        "@treecg/bucketizers": "^2.1.2"
+    },
+    "devDependencies": {
+        "n3": "^1.16.3"
+    }
+}

@@ -36,6 +36,10 @@ export class BasicBucketizer extends BucketizerCore<{}> {
     }
   }
 
+  public getRoot(): string {
+    return "0";
+  }
+
   public static build(options: BasicInputType, state?: any): BasicBucketizer {
     return new BasicBucketizer(options, state);
   }

@@ -1,9 +1,5 @@
 import { readFile } from 'fs/promises';
 import type { Quad } from '@rdfjs/types';
-import type { BasicInputType } from '@treecg/basic-bucketizer';
-import type { GeospatialInputType } from '@treecg/geospatial-bucketizer';
-import type { SubjectInputType } from '@treecg/subject-page-bucketizer';
-import type { SubstringInputType } from '@treecg/substring-bucketizer';
 import type { Bucketizer } from '@treecg/types';
 import { LDES, RDF } from '@treecg/types';
 import * as N3 from 'n3';

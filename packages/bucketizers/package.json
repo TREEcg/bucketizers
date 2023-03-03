@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@treecg/basic-bucketizer": "^2.1.2",
+    "@treecg/multi-bucketizer": "^1.0.0",
     "@treecg/bucketizer-core": "^1.1.1",
     "@treecg/geospatial-bucketizer": "^2.1.1",
     "@treecg/subject-page-bucketizer": "^2.1.1",
