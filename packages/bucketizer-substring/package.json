@@ -1,6 +1,6 @@
 {
   "name": "@treecg/substring-bucketizer",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "Applies a substring fragmentation to LDES members",
   "author": "Dwight Van Lancker <dwight.vanlancker@hotmail.com>",
   "homepage": "https://github.com/TREEcg/bucketizers#readme",
@@ -30,7 +30,7 @@
     "url": "https://github.com/TREEcg/bucketizers/issues"
   },
   "dependencies": {
-    "@treecg/bucketizer-core": "^1.1.2",
+    "@treecg/bucketizer-core": "^1.1.3",
     "winston": "^3.3.3"
   }
 }

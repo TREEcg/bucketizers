@@ -3,12 +3,17 @@ import { DataFactory } from 'rdf-data-factory';
 import type { MultiBucketizerOptions } from '../lib/MultiBucketizer';
 import { MultiBucketizerFactory } from '../lib/MultiBucketizer';
 import * as N3 from 'n3';
+import { FactoryBuilder } from '@treecg/bucketizer-core';
+import { BasicBucketizerFactory, BasicInputType } from '@treecg/basic-bucketizer';
+import { SubjectInputType, SubjectPageBucketizerFactory } from '@treecg/subject-page-bucketizer';
 
 describe('bucketizer-multi', () => {
   const factory: RDF.DataFactory = new DataFactory();
 
+  const small_factory = FactoryBuilder.builder().add(new BasicBucketizerFactory()).add(new SubjectPageBucketizerFactory());
+
   it('should add members to the same page when it is not full', async () => {
-    const config: MultiBucketizerOptions = {
+    const config: MultiBucketizerOptions<{} | SubjectInputType | BasicInputType> = {
       configs: [
         {
           "type": "basic", "config": {
@@ -31,7 +36,7 @@ describe('bucketizer-multi', () => {
         }
       ]
     };
-    const f = new MultiBucketizerFactory();
+    const f = new MultiBucketizerFactory(small_factory);
     const bucketizer = f.build(config);
 
     const quadsArray: string[] = [];
@@ -75,7 +80,6 @@ describe('bucketizer-multi', () => {
 @prefix tree: <https://w3id.org/tree#> .
 
 ex:MultiBucketizeStrategy a ldes:BucketizeStrategy;
-  a ldes:multi;
   ldes:bucketType ldes:multi;
   ldes:configs (
     ex:BucketizeStrategy
@@ -89,7 +93,7 @@ ex:BucketizeStrategy
     ldes:pageSize 2.
     `;
     const quads = new N3.Parser().parse(ld);
-    const f = new MultiBucketizerFactory();
+    const f = new MultiBucketizerFactory(small_factory);
     const c = f.ldConfig(quads, factory.namedNode("http://example.org/ns#MultiBucketizeStrategy"));
 
     expect(c).not.toBeUndefined()

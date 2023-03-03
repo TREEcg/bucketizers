@@ -1,36 +1,36 @@
 import type * as RDF from '@rdfjs/types';
-import { Factory, findProperty } from '@treecg/bucketizer-core';
-import { Bucketizer, SDS } from '@treecg/types';
-import { LDES, RDF as RDFT } from '@treecg/types';
-import { Configs, FACTORY } from '@treecg/bucketizers';
+import { Factory, FactoryBuilder, findProperty } from '@treecg/bucketizer-core';
+import { Bucketizer, SDS, LDES, RDF as RDFT } from '@treecg/types';
 import { DataFactory } from 'rdf-data-factory';
 import { Quad_Object, Quad_Subject } from '@rdfjs/types';
 
-export interface MultiBucketizerOptions {
-  configs: { config: Configs, type: string }[];
+export interface MultiBucketizerOptions<C> {
+  configs: { config: C, type: string }[];
 };
 
-export class MultiBucketizerFactory implements Factory<MultiBucketizerOptions> {
+export class MultiBucketizerFactory<C> implements Factory<MultiBucketizerOptions<C>> {
   type: string = "multi";
-  constructor() {
 
+  private readonly factory: FactoryBuilder<C>;
+  constructor(factory: FactoryBuilder<C>) {
+    this.factory = factory;
   }
-  build(config: MultiBucketizerOptions, state?: any): Bucketizer {
-    return MultiBucketizer.build(config, state)
+  build(config: MultiBucketizerOptions<C>, state?: any): Bucketizer {
+    return MultiBucketizer.build(config, this.factory, state)
   }
 
-  ldConfig(quads: RDF.Quad[], subject: RDF.Term): MultiBucketizerOptions | void {
+  ldConfig(quads: RDF.Quad[], subject: RDF.Term): MultiBucketizerOptions<C> | void {
     if (findProperty(quads, subject, LDES.terms.bucketType).value !== LDES.custom(this.type)) {
       return;
     }
 
-    const configs: { config: Configs, type: string }[] = [];
+    const configs: { config: C, type: string }[] = [];
     let current = findProperty(quads, subject, LDES.terms.custom("configs"));
     try {
       while (current.value !== RDFT.nil) {
         // Find current config
         const currentSubject = findProperty(quads, current, RDFT.terms.first);
-        configs.push(FACTORY.getConfig(quads, currentSubject));
+        configs.push(this.factory.getConfig(quads, currentSubject));
 
         // Find next current
         current = findProperty(quads, current, RDFT.terms.rest);
@@ -54,11 +54,11 @@ export class MultiBucketizer implements Bucketizer {
 
   }
 
-  public static build(config: MultiBucketizerOptions, _state?: any): MultiBucketizer {
+  public static build<C>(config: MultiBucketizerOptions<C>, factory: FactoryBuilder<C>, _state?: any): MultiBucketizer {
     const out = new MultiBucketizer();
 
     for (let c of config.configs) {
-      out.builders.push(() => FACTORY.build(c.config, c.type));
+      out.builders.push(() => factory.build(c.config, c.type));
     }
 
     out.bucketizers = { current: out.builders[0](), children: {} };
