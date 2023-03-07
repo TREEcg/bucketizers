@@ -35,7 +35,7 @@ export async function getValidShape(ld: Quad[], subject?: Term): Promise<N3.Term
   const shape = factory.namedNode('http://schema.org/BucketizeShape');
 
   for (const sub of subjects) {
-    if (subject && sub !== subject) {
+    if (subject && sub.value !== subject.value) {
       continue;
     }
     validator.validate(data);

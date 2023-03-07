@@ -28,7 +28,9 @@
   },
   "dependencies": {
     "@treecg/bucketizer-core": "^1.1.4",
-    "n3": "^1.16.2",
     "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "n3": "^1.16.3"
   }
 }

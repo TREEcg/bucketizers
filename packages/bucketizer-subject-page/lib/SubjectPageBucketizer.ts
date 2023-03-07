@@ -1,17 +1,24 @@
 import type * as RDF from '@rdfjs/types';
+import { Term } from '@rdfjs/types';
 import { BucketizerCoreExt, Factory, parseBucketizerExtCoreOptions } from '@treecg/bucketizer-core';
 import { RelationParameters, BucketizerCoreExtOptions, LDES, Bucketizer } from '@treecg/types';
 import { RelationType } from '@treecg/types';
 
-export class SubjectPageBucketizerFactory implements Factory<BucketizerCoreExtOptions> {
-    type: string = "subject";
-    build(config: BucketizerCoreExtOptions, state?: any): Bucketizer {
-      return SubjectPageBucketizer.build(config, state);
-    }
+export class SubjectPageBucketizerFactory implements Factory<SubjectInputType> {
+  type: string = "subject";
+  build(config: BucketizerCoreExtOptions, state?: any): Bucketizer {
+    return SubjectPageBucketizer.build(config, state);
+  }
 
-  ldConfig(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreExtOptions | void {
-    const out = parseBucketizerExtCoreOptions(quads, subject);
-    if(out.type.value === LDES.custom("subject")) {
+  ldConfig(quads: RDF.Quad[], subject: RDF.Term): SubjectInputType | void {
+    const out = <SubjectInputType & { type: Term }>parseBucketizerExtCoreOptions(quads, subject);
+    const maxRelations = quads.find(q => q.subject.equals(subject) && q.predicate.equals(LDES.terms.custom("maxRelations")))?.object.value;
+    if (maxRelations) {
+      out.maxRelations = parseInt(maxRelations);
+    }
+    console.log("config", out);
+    console.log(out.type.value, '===', LDES.custom("subject"));
+    if (out.type.value === LDES.custom("subject")) {
       return out;
     } else {
       return;
@@ -19,10 +26,15 @@ export class SubjectPageBucketizerFactory implements Factory<BucketizerCoreExtOp
   }
 }
 
-export type SubjectInputType = Partial<BucketizerCoreExtOptions>;
-export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
-  public static build(bucketizerOptions: SubjectInputType, state?: any): SubjectPageBucketizer {
+export type SubjectInputType = BucketizerCoreExtOptions & { maxRelations?: number };
+export class SubjectPageBucketizer extends BucketizerCoreExt<{ maxRelations?: number }> {
+  rootRelationCount = 0;
+  rootCount = 0;
+  maxRelations = 50;
+
+  public static build(bucketizerOptions: Partial<SubjectInputType>, state?: any): SubjectPageBucketizer {
     const bucketizer = new SubjectPageBucketizer(bucketizerOptions);
+    bucketizer.maxRelations = bucketizerOptions.maxRelations || 100;
 
     if (state) {
       bucketizer.importState(state);
@@ -31,6 +43,29 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
     return bucketizer;
   }
 
+  private getRootName(): string {
+    if (this.rootCount === 0) {
+      return this.getRoot();
+    } else {
+      return this.getRoot() + '-' + this.rootCount;
+    }
+  }
+
+  private getCurrentStart(newRelations: [string, RelationParameters][]): string {
+    if (this.rootRelationCount === this.maxRelations) {
+      const from = this.getRootName();
+      this.rootCount += 1;
+      const to = this.getRootName();
+      newRelations.push(
+        [from, {
+          type: RelationType.Relation,
+          nodeId: to,
+        }]
+      );
+    }
+
+    return this.getRootName();
+  }
 
   protected createBuckets(propertyPathObjects: RDF.Term[], newRelations: [string, RelationParameters][]): string[] {
     const buckets: string[] = [];
@@ -45,7 +80,7 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
           hypermediaControlsMap.set(id, []);
 
           const propMember = this.getPropertyPathMember();
-          newRelations.push([this.getRoot(), this.createRelationParameters(id, propMember.id)]);
+          newRelations.push([this.getCurrentStart(newRelations), this.createRelationParameters(id, propMember.id)]);
         }
 
         buckets.push(id);
@@ -62,6 +97,21 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{}> {
       nodeId: value,
       path: pathObject,
     };
+  }
+
+  public exportState(): any {
+    const state = super.exportState();
+    state.rootRelationCount = this.rootRelationCount;
+    state.rootCount = this.rootCount;
+    state.maxRelations = this.maxRelations;
+    return state;
+  }
+
+  public importState(state: any): void {
+    super.importState(state);
+    this.rootRelationCount = state.rootRelationCount;
+    this.rootCount = state.rootCount;
+    this.maxRelations = state.maxRelations;
   }
 }
 

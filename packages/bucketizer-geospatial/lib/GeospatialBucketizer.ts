@@ -5,16 +5,16 @@ import { RelationType, LDES, Bucketizer } from '@treecg/types';
 import type { RelationParameters, BucketizerCoreExtOptions } from '@treecg/types';
 import { SlippyMaps } from './utils/SlippyMaps';
 
-export class GeospatialBucketizerFactory implements Factory<BucketizerCoreExtOptions & {"zoom": number}> {
-    type: string = "geospatial";
-    build(config: BucketizerCoreExtOptions & {'zoom': number}, state?: any): Bucketizer {
-      return GeospatialBucketizer.build(config, state)
-    }
+export class GeospatialBucketizerFactory implements Factory<BucketizerCoreExtOptions & { "zoom": number }> {
+  type: string = "geospatial";
+  build(config: BucketizerCoreExtOptions & { 'zoom': number }, state?: any): Bucketizer {
+    return GeospatialBucketizer.build(config, state)
+  }
 
-  ldConfig(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreExtOptions & {'zoom': number} | void {
+  ldConfig(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreExtOptions & { 'zoom': number } | void {
     const out = parseBucketizerExtCoreOptions(quads, subject);
-    if(out.type.value === LDES.custom(this.type)) {
-      return Object.assign(out, {'zoom': parseInt(findProperty(quads, subject, LDES.terms.custom("zoom")).value)});
+    if (out.type.value === LDES.custom(this.type)) {
+      return Object.assign(out, { 'zoom': parseInt(findProperty(quads, subject, LDES.terms.custom("zoomLevel")).value) });
     } else {
       return;
     }
@@ -81,7 +81,7 @@ export class GeospatialBucketizer extends BucketizerCoreExt<{ 'zoom': number }> 
             // Update hypermedia controls for root (extend polygon with bounding box of new tile)
             const rootHypermediaControls = this.getHypermediaControls(this.getRoot())!;
             const columnRelationParameters =
-                            rootHypermediaControls.find(parameterObject => parameterObject.nodeId === columnPath);
+              rootHypermediaControls.find(parameterObject => parameterObject.nodeId === columnPath);
 
             if (columnRelationParameters) {
               const polygon = columnRelationParameters.value![0];

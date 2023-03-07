@@ -46,6 +46,7 @@ export class FactoryBuilder<C> {
           return { config, type: f.type };
         }
       } catch (e: any) {
+        console.log(e);
 
       }
     }
@@ -66,7 +67,7 @@ export class FactoryBuilder<C> {
       }
     }
 
-    throw "No such factory found!";
+    throw "No such factory found! Tried " + this.factories.map(f => f.type).join(', ');
   }
 }
 

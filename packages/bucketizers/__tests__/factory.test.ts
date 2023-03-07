@@ -94,6 +94,7 @@ describe('bucketizers-factory', () => {
     });
 
     test('parses from linked data', async () => {
+      console.log("parse from ld");
       const quads = new N3.Parser().parse(rdf);
 
       let bucketizer: Bucketizer | undefined,
@@ -101,6 +102,7 @@ describe('bucketizers-factory', () => {
       try {
         bucketizer = await createBucketizerLD(quads);
       } catch (error: any) {
+        console.log(error);
         console.log(error.stack);
         err = error;
       }
@@ -212,6 +214,7 @@ describe('bucketizers-factory', () => {
       try {
         bucketizer = await createBucketizerLD(quads);
       } catch (error: any) {
+        console.log(error);
         console.log(error.stack);
         err = error;
       }

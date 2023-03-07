@@ -1,5 +1,5 @@
 import type * as RDF from '@rdfjs/types';
-import { Factory, parseBucketizerExtCoreOptions, Partial } from '@treecg/bucketizer-core';
+import { Factory, parseBucketizerCoreOptions, Partial } from '@treecg/bucketizer-core';
 import { BucketizerCore } from '@treecg/bucketizer-core';
 import { Bucketizer, BucketizerCoreOptions, RelationParameters } from '@treecg/types';
 import { RelationType, LDES } from '@treecg/types';
@@ -11,7 +11,7 @@ export class BasicBucketizerFactory implements Factory<BucketizerCoreOptions> {
     }
 
   ldConfig(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreOptions | void {
-    const out = parseBucketizerExtCoreOptions(quads, subject);
+    const out = parseBucketizerCoreOptions(quads, subject);
     if(out.type.value === LDES.custom(this.type)) {
       return out;
     } else {

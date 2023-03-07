@@ -16,37 +16,63 @@ export function findProperty(quads: RDF.Quad[], subject: RDF.Term, predicate: RD
   return quad.object;
 }
 
-export function parseBucketizerCoreOptions(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreOptions & {'type': RDF.Term} {
-    const out = <BucketizerCoreOptions & {'type': RDF.Term}> {};
+export function parseBucketizerCoreOptions(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreOptions & { 'type': RDF.Term } {
+  const out = <BucketizerCoreOptions & { 'type': RDF.Term }>{};
 
-    try {
-      out.bucketProperty = findProperty(quads, subject, LDES.terms.bucketProperty).value;
-    } catch(e: any) { }
+  try {
+    out.bucketProperty = findProperty(quads, subject, LDES.terms.bucketProperty).value;
+  } catch (e: any) { }
 
-    try {
-      const pageSize = findProperty(quads, subject, LDES.terms.custom("pageSize")).value;
-      out.pageSize = parseInt(pageSize);
-    } catch(e: any) {
-      out.pageSize = 50;
-    }
+  try {
+    const pageSize = findProperty(quads, subject, LDES.terms.custom("pageSize")).value;
+    out.pageSize = parseInt(pageSize);
+  } catch (e: any) {
+    out.pageSize = 50;
+  }
 
-    out.type = findProperty(quads, subject, LDES.terms.bucketType);
-    
-    return out;
+  out.type = findProperty(quads, subject, LDES.terms.bucketType);
+
+  return out;
 }
 
-export function parseBucketizerExtCoreOptions(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreExtOptions & {'type': RDF.Term} {
-    const options = <BucketizerCoreExtOptions & {'type': RDF.Term}> parseBucketizerCoreOptions(quads, subject);
+function loop_list(quads: RDF.Quad[], subject: RDF.Term): RDF.Term[] | undefined {
+  let current = subject;
+  const out: RDF.Term[] = [];
 
-    try {
-      options.root = findProperty(quads, subject, LDES.terms.custom("isBucketRoot")).value
-    } catch(e: any) {
-      options.root = 'root';
-    }
+  while (!current.equals(RDFT.terms.nil)) {
+    const next = quads.find(q => q.subject.equals(current) && q.predicate.equals(RDFT.terms.rest));
+    if (!next) return;
 
-    options.propertyPath = findProperty(quads, subject, TREE.terms.path).value
+    const value =
+      quads.find(q => q.subject.equals(current) && q.predicate.equals(RDFT.terms.first))?.object;
+    if (!value) return;
 
-    return options;
+    out.push(value);
+    current = next.object;
+  }
+
+  return out;
+
+}
+
+export function parseBucketizerExtCoreOptions(quads: RDF.Quad[], subject: RDF.Term): BucketizerCoreExtOptions & { 'type': RDF.Term } {
+  const options = <BucketizerCoreExtOptions & { 'type': RDF.Term }>parseBucketizerCoreOptions(quads, subject);
+
+  try {
+    options.root = findProperty(quads, subject, LDES.terms.custom("isBucketRoot")).value
+  } catch (e: any) {
+    options.root = 'root';
+  }
+
+  const path = quads.find(q => q.subject.value === subject.value && q.predicate.equals(TREE.terms.path))?.object;
+  if (!path) {
+    throw "Predicate tree:path not found!";
+  }
+  const list = loop_list(quads, path);
+  const property = <RDF.Quad[]>(list ? list : [path]);
+  options.propertyPath = property;
+
+  return options;
 }
 
 
@@ -229,7 +255,8 @@ export abstract class BucketizerCoreExt<Options = {}> extends BucketizerCore<Buc
   private setPropertyPathQuads(propertyPath: string | Quad[]): void {
     let quads;
     if (Array.isArray(propertyPath)) {
-      quads = propertyPath;
+      this.propertyPathPredicates = <RDF.Term[]>propertyPath;
+      return;
     } else {
       const fullPath = `_:b0 <https://w3id.org/tree#path> ${propertyPath} .`;
       quads = new N3.Parser().parse(fullPath);
