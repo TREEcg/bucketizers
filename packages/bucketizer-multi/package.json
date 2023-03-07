@@ -1,6 +1,6 @@
 {
     "name": "@treecg/multi-bucketizer",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "Applies multiple bucketizers in series. Can be used for multidimensional bucketization.",
     "author": "Arthur Vercruysse <arthur.vercruysse@ugent.be>",
     "homepage": "https://github.com/TREEcg/bucketizers#readme",
@@ -31,7 +31,7 @@
     },
     "devDependencies": {
         "@treecg/basic-bucketizer": "^2.1.6",
-        "@treecg/subject-page-bucketizer": "^2.1.5",
+        "@treecg/subject-page-bucketizer": "^2.1.6",
         "@types/n3": "^1.10.4",
         "n3": "^1.16.3"
     }
