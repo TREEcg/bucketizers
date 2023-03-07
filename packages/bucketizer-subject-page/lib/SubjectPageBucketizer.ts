@@ -54,6 +54,7 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{ maxRelations?: nu
   private getCurrentStart(newRelations: [string, RelationParameters][]): string {
     if (this.rootRelationCount === this.maxRelations) {
       const from = this.getRootName();
+      this.rootRelationCount = 0;
       this.rootCount += 1;
       const to = this.getRootName();
       newRelations.push(
@@ -63,6 +64,7 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{ maxRelations?: nu
         }]
       );
     }
+    this.rootRelationCount += 1;
 
     return this.getRootName();
   }
