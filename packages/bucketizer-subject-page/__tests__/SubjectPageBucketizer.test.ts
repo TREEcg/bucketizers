@@ -1,7 +1,9 @@
 import type * as RDF from '@rdfjs/types';
+import { LDES } from '@treecg/types';
+import exp from 'constants';
 import { Parser } from 'n3';
 import { DataFactory } from 'rdf-data-factory';
-import { SubjectPageBucketizer } from '../lib/SubjectPageBucketizer';
+import { SubjectInputType, SubjectPageBucketizer, SubjectPageBucketizerFactory } from '../lib/SubjectPageBucketizer';
 
 describe('bucketizer-subject-page', () => {
   let member: RDF.Quad[];
@@ -16,6 +18,34 @@ describe('bucketizer-subject-page', () => {
 
   beforeEach(async () => {
     member = new Parser().parse('<http://example.org/id/123#456> <http://purl.org/dc/terms/isVersionOf> <http://example.org/id/123>.');
+  });
+
+  it("factory should parse LD", async () => {
+    const fact = new SubjectPageBucketizerFactory()
+    const ld = new Parser().parse(`
+@prefix ex: <http://example.org/ns#> .
+@prefix ldes: <https://w3id.org/ldes#> .
+@prefix tree: <https://w3id.org/tree#> .
+@prefix : <http://time.is/ns#> .
+
+ex:BucketizeStrategy
+    ldes:bucketType ldes:subject;
+    ldes:bucketProperty ldes:bucket2;
+    tree:path "<http://time.is/ns#y>";
+    ldes:maxRelations 2;
+    ldes:pageSize 10.
+`);
+    const mConfig = fact.ldConfig(ld, factory.namedNode("http://example.org/ns#BucketizeStrategy"));
+
+    expect(mConfig).not.toBeFalsy();
+
+    const config = <SubjectInputType> mConfig!;
+
+    expect(config.maxRelations).toBe(2);
+    expect(config.pageSize).toBe(10);
+
+    const bucketizer = fact.build(config);
+    expect((<any>bucketizer).maxRelations).toBe(2);
   });
 
   it('should be a function', async () => {

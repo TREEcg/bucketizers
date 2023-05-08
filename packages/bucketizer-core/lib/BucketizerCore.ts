@@ -311,7 +311,7 @@ export abstract class BucketizerCoreExt<Options = {}> extends BucketizerCore<Buc
     }
 
     const out = [
-      ...immutables.map(x => this.factory.quad(this.factory.namedNode(x), SDS.terms.custom("immutables"), this.factory.literal("true"))),
+      ...immutables.map(x => this.factory.quad(this.factory.namedNode(x), SDS.terms.custom("immutable"), this.factory.literal("true"))),
       ...newRelations.flatMap(([source, rel]) => this.expandRelation(source, rel)),
       ...this.createSDSRecord(this.factory.namedNode(memberId), bucketNodes),
     ];
