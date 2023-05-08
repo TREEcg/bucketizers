@@ -51,7 +51,7 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{ maxRelations?: nu
     }
   }
 
-  private getCurrentStart(newRelations: [string, RelationParameters][]): string {
+  private getCurrentStart(newRelations: [string, RelationParameters][], immutables: string[]): string {
     if (this.rootRelationCount === this.maxRelations) {
       const from = this.getRootName();
       this.rootRelationCount = 0;
@@ -69,7 +69,7 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{ maxRelations?: nu
     return this.getRootName();
   }
 
-  protected createBuckets(propertyPathObjects: RDF.Term[], newRelations: [string, RelationParameters][]): string[] {
+  protected createBuckets(propertyPathObjects: RDF.Term[], newRelations: [string, RelationParameters][], immutables: string[]): string[] {
     const buckets: string[] = [];
 
     propertyPathObjects.forEach(propertyPathObject => {
@@ -82,7 +82,7 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{ maxRelations?: nu
           hypermediaControlsMap.set(id, []);
 
           const propMember = this.getPropertyPathMember();
-          newRelations.push([this.getCurrentStart(newRelations), this.createRelationParameters(id, propMember.id)]);
+          newRelations.push([this.getCurrentStart(newRelations, immutables), this.createRelationParameters(id, propMember.id)]);
         }
 
         buckets.push(id);

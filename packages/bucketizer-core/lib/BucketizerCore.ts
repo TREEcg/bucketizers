@@ -289,6 +289,7 @@ export abstract class BucketizerCoreExt<Options = {}> extends BucketizerCore<Buc
   public bucketize(quads: RDF.Quad[], memberId: string): RDF.Quad[] {
     const propertyPathObjects: RDF.Term[] = this.extractPropertyPathObject(quads, memberId);
     const newRelations: [string, RelationParameters][] = [];
+    const immutables: string[] = [];
     const bucketNodes: string[] = [];
 
 
@@ -299,7 +300,7 @@ export abstract class BucketizerCoreExt<Options = {}> extends BucketizerCore<Buc
       bucketNodes.push(bucketNode);
     } else {
       try {
-        const buckets = this.createBuckets(propertyPathObjects, newRelations);
+        const buckets = this.createBuckets(propertyPathObjects, newRelations, immutables);
         bucketNodes.push(...buckets);
       } catch (error: any) {
         this.logger.error(`Error while creating the buckets for member ${memberId}. Applying fallback.`);
@@ -310,6 +311,7 @@ export abstract class BucketizerCoreExt<Options = {}> extends BucketizerCore<Buc
     }
 
     const out = [
+      ...immutables.map(x => this.factory.quad(this.factory.namedNode(x), SDS.terms.custom("immutables"), this.factory.literal("true"))),
       ...newRelations.flatMap(([source, rel]) => this.expandRelation(source, rel)),
       ...this.createSDSRecord(this.factory.namedNode(memberId), bucketNodes),
     ];
@@ -325,7 +327,7 @@ export abstract class BucketizerCoreExt<Options = {}> extends BucketizerCore<Buc
   /**
      * Selects the bucket for the LDES member based on the value of the property path object
      */
-  protected abstract createBuckets(propertyPathObject: RDF.Term[], newRelations: [string, RelationParameters][]): string[];
+  protected abstract createBuckets(propertyPathObject: RDF.Term[], newRelations: [string, RelationParameters][], immutables: string[]): string[];
 
   /**
      * Returns the RDF Term that matches the property path and will be used to create a bucket triple
