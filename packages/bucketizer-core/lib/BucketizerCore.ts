@@ -222,7 +222,6 @@ export abstract class BucketizerCoreExt<Options = {}> extends BucketizerCore<Buc
 
   public getPropertyPathMember(): Member {
     if (this.propertyPathPredicates.length === 1) {
-      console.log('propetyPath predicate with only one step');
       return {
         id: this.propertyPathPredicates[0],
         quads: [],

@@ -16,8 +16,6 @@ export class SubjectPageBucketizerFactory implements Factory<SubjectInputType> {
     if (maxRelations) {
       out.maxRelations = parseInt(maxRelations);
     }
-    console.log("config", out);
-    console.log(out.type.value, '===', LDES.custom("subject"));
     if (out.type.value === LDES.custom("subject")) {
       return out;
     } else {
