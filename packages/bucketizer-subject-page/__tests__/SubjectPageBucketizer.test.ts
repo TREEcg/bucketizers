@@ -56,8 +56,7 @@ ex:BucketizeStrategy
 
   it('should be a constructor', async () => {
     const bucketizer = await SubjectPageBucketizer.build(bucketizerOptions);
-    expect(bucketizer)
-      .toBeInstanceOf(SubjectPageBucketizer);
+    expect(bucketizer) .toBeInstanceOf(SubjectPageBucketizer);
   });
 
   it('should apply fallback function when property path is not found', async () => {
@@ -89,12 +88,13 @@ ex:BucketizeStrategy
     const op = Object.assign({}, bucketizerOptions);
     op.propertyPath = "<abc>";
     const bucketizer = SubjectPageBucketizer.build(op);
+    bucketizer.hash = "abc";
     const buckets = bucketizer.bucketize(member, 'http://example.org/id/123#456');
 
     const bucketQuads = buckets.filter(quad => quad.predicate.equals(bucketNode))!;
     expect(bucketQuads.length).toBe(1);
     expect(bucketQuads[0].object.value)
-      .toEqual("http://data.europa.eu/949/wgs84_pos-point");
+      .toEqual("wgs84_pos-point-abc");
   })
 
   it('should throw an error when property path option is not set', async () => {

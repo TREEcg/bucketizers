@@ -29,10 +29,13 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{ maxRelations?: nu
   rootRelationCount = 0;
   rootCount = 0;
   maxRelations = 50;
+  hash = "" 
 
   public static build(bucketizerOptions: Partial<SubjectInputType>, state?: any): SubjectPageBucketizer {
     const bucketizer = new SubjectPageBucketizer(bucketizerOptions);
     bucketizer.maxRelations = bucketizerOptions.maxRelations || 100;
+    bucketizer.hash = Math.random().toString(36).substr(2, 5)
+
 
     if (state) {
       bucketizer.importState(state);
@@ -72,8 +75,10 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{ maxRelations?: nu
     const buckets: string[] = [];
 
     propertyPathObjects.forEach(propertyPathObject => {
-      const part = propertyPathObject.value;
+      const parts = propertyPathObject.value.split('/');
+      const part = parts[parts.length - 1] + '-' + this.hash;
       if (!part) return;
+
       const hypermediaControlsMap = this.getBucketHypermediaControlsMap();
       const id = this.normalize(part);
 
@@ -111,6 +116,7 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{ maxRelations?: nu
     state.rootRelationCount = this.rootRelationCount;
     state.rootCount = this.rootCount;
     state.maxRelations = this.maxRelations;
+    state.hash = this.hash;
     return state;
   }
 
@@ -119,6 +125,7 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{ maxRelations?: nu
     this.rootRelationCount = state.rootRelationCount;
     this.rootCount = state.rootCount;
     this.maxRelations = state.maxRelations;
+    this.hash = state.hash;
   }
 }
 
