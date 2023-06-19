@@ -1,6 +1,6 @@
 {
   "name": "@treecg/bucketizers",
-  "version": "2.1.11",
+  "version": "2.1.12",
   "description": "Package that contains all @treecg bucketizers",
   "author": "Dwight Van Lancker <dwight.vanlancker@hotmail.com>",
   "homepage": "https://github.com/TREEcg/bucketizers#readme",
@@ -30,8 +30,8 @@
     "@treecg/basic-bucketizer": "^2.1.9",
     "@treecg/bucketizer-core": "^1.1.8",
     "@treecg/geospatial-bucketizer": "^2.1.8",
-    "@treecg/multi-bucketizer": "^1.0.9",
-    "@treecg/subject-page-bucketizer": "^2.1.10",
+    "@treecg/multi-bucketizer": "^1.0.10",
+    "@treecg/subject-page-bucketizer": "^2.1.11",
     "@treecg/substring-bucketizer": "^2.1.9",
     "n3": "^1.16.2",
     "rdf-validate-shacl": "^0.4.4",
