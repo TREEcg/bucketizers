@@ -1,6 +1,4 @@
 import type * as RDF from '@rdfjs/types';
-import { LDES } from '@treecg/types';
-import exp from 'constants';
 import { Parser } from 'n3';
 import { DataFactory } from 'rdf-data-factory';
 import { SubjectInputType, SubjectPageBucketizer, SubjectPageBucketizerFactory } from '../lib/SubjectPageBucketizer';
@@ -11,13 +9,17 @@ describe('bucketizer-subject-page', () => {
   const bucketNode = factory.namedNode('https://w3id.org/sds#bucket');
 
   const bucketizerOptions: any = {
-    propertyPath: '(<http://purl.org/dc/terms/isVersionOf>)',
+    propertyPath: '<http://purl.org/dc/terms/isVersionOf>',
     bucketBase: '',
     pageSize: 20,
+    root: "root"
   };
 
   beforeEach(async () => {
-    member = new Parser().parse('<http://example.org/id/123#456> <http://purl.org/dc/terms/isVersionOf> <http://example.org/id/123>.');
+    member = new Parser().parse(`
+<http://example.org/id/123#456> <http://purl.org/dc/terms/isVersionOf> <http://example.org/id/123>;
+                                <abc> <http://data.europa.eu/949/wgs84_pos#Point>.
+  `);
   });
 
   it("factory should parse LD", async () => {
@@ -39,7 +41,7 @@ ex:BucketizeStrategy
 
     expect(mConfig).not.toBeFalsy();
 
-    const config = <SubjectInputType> mConfig!;
+    const config = <SubjectInputType>mConfig!;
 
     expect(config.maxRelations).toBe(2);
     expect(config.pageSize).toBe(10);
@@ -74,14 +76,26 @@ ex:BucketizeStrategy
     expect(bucketTriple.object.value).toEqual('bucketless-0');
   });
 
-  it('should add one or more bucket triples to a member', async () => {
-    const bucketizer = await SubjectPageBucketizer.build(bucketizerOptions);
+  it('should add one or more bucket triples to a member', () => {
+    const bucketizer = SubjectPageBucketizer.build(bucketizerOptions);
     const buckets = bucketizer.bucketize(member, 'http://example.org/id/123#456');
 
     const bucketQuads = buckets.filter(quad => quad.predicate.equals(bucketNode))!;
 
-    expect(bucketQuads.length).toBeGreaterThan(0);
+    expect(bucketQuads.length).toBe(1);
   });
+
+  it('should normalize bucket id', () => {
+    const op = Object.assign({}, bucketizerOptions);
+    op.propertyPath = "<abc>";
+    const bucketizer = SubjectPageBucketizer.build(op);
+    const buckets = bucketizer.bucketize(member, 'http://example.org/id/123#456');
+
+    const bucketQuads = buckets.filter(quad => quad.predicate.equals(bucketNode))!;
+    expect(bucketQuads.length).toBe(1);
+    expect(bucketQuads[0].object.value)
+      .toEqual("http://data.europa.eu/949/wgs84_pos-point");
+  })
 
   it('should throw an error when property path option is not set', async () => {
     let err,

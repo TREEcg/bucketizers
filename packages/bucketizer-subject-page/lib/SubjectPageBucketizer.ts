@@ -72,30 +72,36 @@ export class SubjectPageBucketizer extends BucketizerCoreExt<{ maxRelations?: nu
     const buckets: string[] = [];
 
     propertyPathObjects.forEach(propertyPathObject => {
-      const parts = propertyPathObject.value.split('/');
-      if (parts[parts.length - 1] !== undefined) {
-        const hypermediaControlsMap = this.getBucketHypermediaControlsMap();
-        const id = parts[parts.length - 1];
+      const part = propertyPathObject.value;
+      if (!part) return;
+      const hypermediaControlsMap = this.getBucketHypermediaControlsMap();
+      const id = this.normalize(part);
 
-        if (!hypermediaControlsMap.has(id)) {
-          hypermediaControlsMap.set(id, []);
+      if (!hypermediaControlsMap.has(id)) {
+        hypermediaControlsMap.set(id, []);
 
-          const propMember = this.getPropertyPathMember();
-          newRelations.push([this.getCurrentStart(newRelations, immutables), this.createRelationParameters(id, propMember.id)]);
-        }
-
-        buckets.push(id);
+        const propMember = this.getPropertyPathMember();
+        newRelations.push([this.getCurrentStart(newRelations, immutables), this.createRelationParameters(id, propertyPathObject, propMember.id)]);
       }
+
+      buckets.push(id);
     });
 
     return buckets;
   };
 
-  private createRelationParameters(value: string, pathObject: RDF.Term): RelationParameters {
+  private readonly normalize = (literal: string): string =>
+    literal.trim().normalize('NFKD')
+      .replace(/[\u0300-\u036F]/gu, '')
+      .replace(/[,']/gu, '')
+      .replace(/#/gu, '-')
+      .toLowerCase();
+
+  private createRelationParameters(id: string, value: Term, pathObject: RDF.Term): RelationParameters {
     return {
       type: RelationType.EqualThan,
-      value: [this.factory.literal(value)],
-      nodeId: value,
+      value: [value],
+      nodeId: id,
       path: pathObject,
     };
   }
