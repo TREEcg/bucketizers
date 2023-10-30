@@ -1,3 +1,4 @@
+import { describe, expect, test } from "@jest/globals";
 import type { Term } from '@rdfjs/types';
 import type { BucketizerCoreExtOptions } from '@treecg/types';
 import { DataFactory as factory } from 'n3';

@@ -1,11 +1,11 @@
+import { describe, expect, test } from "@jest/globals";
 import { BasicBucketizer } from '@treecg/basic-bucketizer';
 import { GeospatialBucketizer } from '@treecg/geospatial-bucketizer';
 import { SubjectPageBucketizer } from '@treecg/subject-page-bucketizer';
 import { SubstringBucketizer } from '@treecg/substring-bucketizer';
 import type { Bucketizer } from '@treecg/types';
 import * as N3 from 'n3';
-import { createBucketizer } from '..';
-import { createBucketizerLD, getValidShape } from '../lib/bucketizers';
+import { createBucketizer, createBucketizerLD, getValidShape } from '..';
 
 describe('bucketizers-factory', () => {
   test('adds 1 + 2 to equal 3', () => {

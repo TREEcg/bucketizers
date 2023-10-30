@@ -1,5 +1,4 @@
 import type * as RDF from '@rdfjs/types';
-import type { Quad } from '@rdfjs/types';
 import { Bucketizer, Logger, RelationParameters, BucketizerCoreOptions, BucketizerCoreExtOptions, Member, LDES } from '@treecg/types';
 import { getLogger, RelationType, TREE, RDF as RDFT, SDS } from '@treecg/types';
 import * as N3 from 'n3';
@@ -251,7 +250,7 @@ export abstract class BucketizerCoreExt<Options = {}> extends BucketizerCore<Buc
     };
   }
 
-  private setPropertyPathQuads(propertyPath: string | Quad[]): void {
+  private setPropertyPathQuads(propertyPath: string | RDF.Quad[]): void {
     let quads;
     if (Array.isArray(propertyPath)) {
       this.propertyPathPredicates = <RDF.Term[]>propertyPath;

@@ -10,7 +10,7 @@
     "access": "public"
   },
   "scripts": {
-    "test": "jest"
+    "build": "tsc"
   },
   "directories": {
     "lib": "lib",
@@ -30,11 +30,10 @@
     "url": "https://github.com/TREEcg/bucketizers/issues"
   },
   "dependencies": {
-    "@types/n3": "^1.10.4",
-    "n3": "^1.16.2",
-    "rdf-data-factory": "^1.1.0"
+    "n3": "^1.17.2",
+    "rdf-data-factory": "^1.1.2"
   },
   "devDependencies": {
-    "@types/rdfjs__dataset": "^2.0.0"
+    "@types/n3": "^1.16.3"
   }
 }

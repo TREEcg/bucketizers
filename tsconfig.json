@@ -6,11 +6,10 @@
     ],
     "module": "commonjs",
     "lib": [
-      "es6",
-      "es2019",
-      "esnext.asynciterable"
+      "es2020",
+      "es2021",
     ],
-    "target": "es2017",
+    "target": "es2020",
     "preserveConstEnums": true,
     "downlevelIteration": true,
     "skipLibCheck": true,
@@ -21,6 +20,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
   },
   "include": [
     "packages/*/index.ts",

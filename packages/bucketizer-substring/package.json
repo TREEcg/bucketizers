@@ -9,6 +9,9 @@
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "build": "tsc"
+  },
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -19,9 +22,6 @@
     "lib/**/*.js",
     "lib/**/*.d.ts"
   ],
-  "scripts": {
-    "test": "jest"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TREEcg/bucketizers.git"
@@ -31,6 +31,6 @@
   },
   "dependencies": {
     "@treecg/bucketizer-core": "^1.1.8",
-    "winston": "^3.3.3"
+    "winston": "^3.11.0"
   }
 }

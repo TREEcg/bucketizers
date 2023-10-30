@@ -1,10 +1,10 @@
+import { describe, expect, test, it } from "@jest/globals";
 import type * as RDF from '@rdfjs/types';
 import { Parser } from 'n3';
 import { DataFactory } from 'rdf-data-factory';
 import { SubjectInputType, SubjectPageBucketizer, SubjectPageBucketizerFactory } from '../lib/SubjectPageBucketizer';
 
 describe('bucketizer-subject-page', () => {
-  let member: RDF.Quad[];
   const factory: RDF.DataFactory = new DataFactory();
   const bucketNode = factory.namedNode('https://w3id.org/sds#bucket');
 
@@ -15,14 +15,7 @@ describe('bucketizer-subject-page', () => {
     root: "root"
   };
 
-  beforeEach(async () => {
-    member = new Parser().parse(`
-<http://example.org/id/123#456> <http://purl.org/dc/terms/isVersionOf> <http://example.org/id/123>;
-                                <abc> <http://data.europa.eu/949/wgs84_pos#Point>.
-  `);
-  });
-
-  it("factory should parse LD", async () => {
+  test("factory parsing to LD", async () => {
     const fact = new SubjectPageBucketizerFactory()
     const ld = new Parser().parse(`
 @prefix ex: <http://example.org/ns#> .
@@ -56,7 +49,7 @@ ex:BucketizeStrategy
 
   it('should be a constructor', async () => {
     const bucketizer = await SubjectPageBucketizer.build(bucketizerOptions);
-    expect(bucketizer) .toBeInstanceOf(SubjectPageBucketizer);
+    expect(bucketizer).toBeInstanceOf(SubjectPageBucketizer);
   });
 
   it('should apply fallback function when property path is not found', async () => {
@@ -76,6 +69,10 @@ ex:BucketizeStrategy
   });
 
   it('should add one or more bucket triples to a member', () => {
+    const member: RDF.Quad[] = new Parser().parse(`
+      <http://example.org/id/123#456> <http://purl.org/dc/terms/isVersionOf> <http://example.org/id/123>;
+      <abc> <http://data.europa.eu/949/wgs84_pos#Point>.
+    `);
     const bucketizer = SubjectPageBucketizer.build(bucketizerOptions);
     const buckets = bucketizer.bucketize(member, 'http://example.org/id/123#456');
 
@@ -85,6 +82,10 @@ ex:BucketizeStrategy
   });
 
   it('should normalize bucket id', () => {
+    const member: RDF.Quad[] = new Parser().parse(`
+      <http://example.org/id/123#456> <http://purl.org/dc/terms/isVersionOf> <http://example.org/id/123>;
+      <abc> <http://data.europa.eu/949/wgs84_pos#Point>.
+    `);
     const op = Object.assign({}, bucketizerOptions);
     op.propertyPath = "<abc>";
     const bucketizer = SubjectPageBucketizer.build(op);

@@ -1,3 +1,4 @@
+import { describe, expect, it } from "@jest/globals";
 import type * as RDF from '@rdfjs/types';
 import { SDS } from '@treecg/types';
 import { DataFactory } from 'rdf-data-factory';

@@ -9,6 +9,9 @@
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "build": "tsc"
+  },
   "files": [
     "index.d.ts",
     "index.js",
@@ -20,9 +23,6 @@
     "type": "git",
     "url": "git+https://github.com/TREEcg/bucketizers.git"
   },
-  "scripts": {
-    "test": "jest"
-  },
   "bugs": {
     "url": "https://github.com/TREEcg/bucketizers/issues"
   },
@@ -33,12 +33,12 @@
     "@treecg/multi-bucketizer": "^1.0.10",
     "@treecg/subject-page-bucketizer": "^2.1.11",
     "@treecg/substring-bucketizer": "^2.1.9",
-    "n3": "^1.16.2",
-    "rdf-validate-shacl": "^0.4.4",
-    "winston": "^3.3.3"
+    "n3": "^1.17.2",
+    "rdf-validate-shacl": "^0.5.1",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
-    "@types/n3": "^1.10.4",
-    "@types/rdf-validate-shacl": "^0.4.0"
+    "@types/n3": "^1.16.3",
+    "@types/rdf-validate-shacl": "^0.4.5"
   }
 }

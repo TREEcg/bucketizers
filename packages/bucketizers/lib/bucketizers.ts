@@ -3,7 +3,7 @@ import type { Quad } from '@rdfjs/types';
 import type { Bucketizer } from '@treecg/types';
 import { LDES, RDF } from '@treecg/types';
 import * as N3 from 'n3';
-import * as Validator from 'rdf-validate-shacl';
+import Validator from 'rdf-validate-shacl';
 import { Term } from '@rdfjs/types';
 import { Configs, FACTORY } from '..';
 

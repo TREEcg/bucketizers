@@ -2,7 +2,7 @@
   "packages": [
     "packages/*"
   ],
-    "command": {
+  "command": {
     "publish": {
       "ignoreChanges": [
         "*.md"
@@ -12,7 +12,7 @@
       "npmClient": "npm"
     }
   },
-    "loglevel": "success",
+  "loglevel": "success",
   "registry": "https://registry.npmjs.org/",
   "npmClient": "npm",
   "npmClientArgs": [

@@ -1,7 +1,7 @@
+import { describe, expect, test, it } from "@jest/globals";
 import type * as RDF from '@rdfjs/types';
 import type { BucketizerCoreExtOptions, RelationParameters } from '@treecg/types';
 import { SDS, RelationType } from '@treecg/types';
-import exp from 'constants';
 import { DataFactory, NamedNode } from 'rdf-data-factory';
 import { SubstringBucketizer } from '../lib/SubstringBucketizer';
 

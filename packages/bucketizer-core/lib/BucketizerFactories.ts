@@ -1,5 +1,5 @@
 import { Bucketizer } from "@treecg/types";
-import { Quad, Term } from "rdf-js";
+import { Quad, Term } from "@rdfjs/types";
 
 export interface Typed<C> {
   type: string;
