@@ -3,7 +3,7 @@
 
 The purpose of the geospatial bucketizer is to apply a geospatial fragmentation to TREE members, based on a property path.
 
-> An LDES bucketizer adds triples with the ldes bucket predicate (https://w3id.org/ldes#bucket)[https://w3id.org/ldes#bucket] to the array of quads representating an LDES member, indicating the bucket in which the member belongs.
+> An LDES bucketizer adds triples with the ldes bucket predicate <https://w3id.org/ldes#bucket> to the array of quads representating an LDES member, indicating the bucket in which the member belongs.
 
 The fragmentation strategy converts the geospatial string to a GeoJson object, which is used to determine in which tile(s) the LDES member is present and adds these values `{zoom}/{x}/{y}` to the bucket triples. **At the moment only wkt literals are supported**.
 The hypermedia controls are stored in a map. There is a root, which contains relation to one or more intermediate root files, the columns (X). Each of these root files, then contains relation to the tiles that contain the actual LDES members
