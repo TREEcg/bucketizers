@@ -1,6 +1,6 @@
 {
     "name": "@treecg/basic-bucketizer",
-    "version": "2.1.9",
+    "version": "2.1.10",
     "description": "Applies a basic, linear fragmentation to LDES members",
     "author": "Dwight Van Lancker <dwight.vanlancker@hotmail.com>",
     "homepage": "https://github.com/TREEcg/bucketizers#readme",
@@ -11,7 +11,7 @@
     },
     "scripts": {
         "build": "tsc"
-      },
+    },
     "directories": {
         "lib": "lib",
         "test": "__tests__"
@@ -30,7 +30,7 @@
         "url": "https://github.com/TREEcg/bucketizers/issues"
     },
     "dependencies": {
-        "@treecg/bucketizer-core": "^1.1.8",
+        "@treecg/bucketizer-core": "^1.1.9",
         "winston": "^3.11.0"
     }
 }
