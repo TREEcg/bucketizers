@@ -16,6 +16,6 @@ import { BasicBucketizer } from '@treecg/bucketizers'
 import { SubstringBucketizer} from '@treecg/bucketizers'
 import { SubjectPageBucketizer } from '@treecg/bucketizers'
 import { GeospatialBucketizer } from '@treecg/bucketizers'
-
+import { MultiBucketizer } from '@treecg/multi-bucketizer'
 ...
 ```

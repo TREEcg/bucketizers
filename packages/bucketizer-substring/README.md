@@ -1,7 +1,7 @@
-# LDES Substring Bucketizer
+# Substring Bucketizer
 [![npm](https://img.shields.io/npm/v/@treecg/substring-bucketizer)](https://www.npmjs.com/package/@treecg/substring-bucketizer)
 
-The purpose of the substring bucketizer is to apply a substring fragmentation tot LDES members based on a property path.
+The purpose of the substring bucketizer is to apply a substring fragmentation to TREE members based on a text property path.
 
 > An LDES bucketizer adds triples with the ldes bucket predicate (https://w3id.org/ldes#bucket) to the array of quads representating an LDES member, indicating the bucket in which the member belongs.
 
